@@ -1,7 +1,111 @@
+\section{Keykloak}
+\setauthor{Elias Mahr}
+
+\subsection{Einbindung ins Frontend}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{pics/FrontendButton.png}
+    \caption{Button im Frontend}
+    \label{fig:FrontendButton}
+\end{figure}
+
+Um die Webapp möglichst unkompliziert und Benutzerfreundlich zu halten ist der Button wie im Screenshot rechts oben in der Ecke platziert. Unabhängig vom Scroll-Zustand oder der aktuell ausgewählten Page bleibt er auch immer dort, um sich sofort und schnell anmelden zu können.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.5\textwidth]{pics/anmelden.png}
+        \caption{Anmelde-Button}
+        \label{fig:anmeldebutton}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.5\textwidth]{pics/abmelden.png}
+        \caption{Abmelde-Button}
+        \label{fig:abmeldebutton}
+    \end{subfigure}
+    \caption{Login- und Logout-Buttons}
+    \label{fig:loginbuttons}
+\end{figure}
+
+Das Icon stammt aus der Font Awesome Bibliothek:
+\\
+\lstinline[language=HTML]{<i class="fas fa-sign-in-alt"></i>}
+\\
+Bei Klick darauf wird man weitergeleitet zum Pfad:\\ \texttt{https://192.168.20.202/auth/realms/cesc/protocol/openid-connect\\/auth?client\_id=cesc-frontend\&redirect\_uri=https...} 
+Hier kommt dann die Standart Keycloak Login Page. Nach erfolgreicher anmeldung bekommt der User seinen Token, wir automatisch wieder umgeleitet zur vorher besuchten Seite und es werden alle funktionen der Webseite freigeschalten.
+
+\subsection{das Realm}
+Ein Realm in Keycloak ist ein isolierter Sicherheitsbereich. Er umfasst Benutzer, Rollen, Clients und Policies für eine bestimmte Anwendung. Wir haben ein Realm namens "cesc" erstellt. Es definiert die gesamte Identitätsinfrastruktur für die Weboberfläche.
+\subsubsection{Realm Einstellungen}
+
+\begin{lstlisting}[
+    caption=Keycloak Realm Konfiguration,
+    label=lst:realmconfig,
+    basicstyle=\ttfamily\small
+]
+{
+  "realm": "cesc",
+  "enabled": true,
+  "sslRequired": "external",
+  "bruteForceProtected": true,
+  "loginWithEmailAllowed": true
+}
+\end{lstlisting}
+
+\subsubsection{Rollen}
+\subsubsection{Benutzer}
+\subsubsection{Clients}
+
+\section{Reverse Proxy}
+\setauthor{Elias Mahr}
+
+Nginx ist als eigener Docker Container mit nginx.conf implimentiert. Nur der Port 443 ist öffentlich mit Let's Encrypt-Zertifikaten.
+Die Ports werden Pfadbasiert weitergeleitet:
+
+\begin{itemize}
+\item \underline{http://Keycloak:8080 $\to$ location /auth}
+\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /auth, label=lst:nginx:/auth]
+        location /auth {
+            proxy_pass http://keycloak:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Port 443;
+            proxy_buffer_size 128k;
+            proxy_buffers 4 256k;
+            proxy_busy_buffers_size 256k;
+        }
+\end{lstlisting}
+\item \underline{http://frontend:80 $\to$ location/}
+\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /, label=lst:nginx:/]
+        location / {
+            proxy_pass http://frontend:80;
+        }
+\end{lstlisting}
+\item \underline{http://backend:5000 $\to$ location /api}
+\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /api, label=lst:nginx:/api]
+        location /api {
+            proxy_pass http://backend:5000;
+        }
+\end{lstlisting}
+\end{itemize}
+
+
 Siehe tolle Daten in Tab. \ref{tab:impl:data}.
 \setauthor{Elias Mahr}
 
-\begin{table}
+
+Siehe und staune in Abb. \ref{fig:impl:knuth}.
+
+Dann betrachte den Code in Listing \ref{lst:impl:foo}.
+
+\begin{table}[b]
     \centering
     \begin{tabular}{|lcc|}
     \hline
@@ -12,30 +116,3 @@ Siehe tolle Daten in Tab. \ref{tab:impl:data}.
     \caption{Ein paar tabellarische Daten}
     \label{tab:impl:data}
 \end{table}
-
-\begin{figure}
-    \centering
-    \includegraphics[scale=0.5]{pics/knuthi.jpg}
-    \caption{Don Knuth -- CS Allfather}
-    \label{fig:impl:knuth}
-\end{figure}
-
-Siehe und staune in Abb. \ref{fig:impl:knuth}.
-
-Dann betrachte den Code in Listing \ref{lst:impl:foo}.
-
-\begin{lstlisting}[language=Python,caption=Some code,label=lst:impl:foo]
-# Program to find the sum of all numbers stored in a list (the not-Pythonic-way)
-
-# List of numbers
-numbers = [6, 5, 3, 8, 4, 2, 5, 4, 11]
-
-# variable to store the sum
-sum = 0
-
-# iterate over the list
-for val in numbers:
-    sum = sum+val
-
-print("The sum is", sum)
-\end{lstlisting}
