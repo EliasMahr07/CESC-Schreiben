@@ -1,4 +1,4 @@
-\section{Keykloak}
+\section{Keykloak [Elias Mahr]}
 \setauthor{Elias Mahr}
 
 \subsection{Einbindung ins Frontend}
@@ -36,10 +36,10 @@ Das Icon stammt aus der Font Awesome Bibliothek:
 \lstinline[language=HTML]{<i class="fas fa-sign-in-alt"></i>}
 \\
 Bei Klick darauf wird man weitergeleitet zum Pfad:\\ \texttt{https://192.168.20.202/auth/realms/cesc/protocol/openid-connect\\/auth?client\_id=cesc-frontend\&redirect\_uri=https...} 
-Hier kommt dann die Standart Keycloak Login Page. Nach erfolgreicher anmeldung bekommt der User seinen Token, wir automatisch wieder umgeleitet zur vorher besuchten Seite und es werden alle funktionen der Webseite freigeschalten.
+Hier kommt dann die Standart Keycloak Login Page. Nach erfolgreicher Anmeldung bekommt der User seinen Token, wird automatisch wieder umgeleitet zur vorher besuchten Seite und es werden alle Funktionen der Webseite freigeschalten.
 
 \subsection{das Realm}
-Ein Realm in Keycloak ist ein isolierter Sicherheitsbereich. Er umfasst Benutzer, Rollen, Clients und Policies für eine bestimmte Anwendung. Wir haben ein Realm namens "cesc" erstellt. Es definiert die gesamte Identitätsinfrastruktur für die Weboberfläche.
+Ein Realm in Keycloak ist ein isolierter Sicherheitsbereich. Er umfasst Benutzer, Rollen, Clients und Policies für eine bestimmte Anwendung. Wir haben ein Realm namens ``cesc'' erstellt. Es definiert die gesamte Identifikation und Authorisierung für die Weboberfläche. Zurzeit ist es möglichst klein gehalten, jedoch vollkommen ausreichend. Ein Admin User(herbsthofer) steuert alles, in Zukunft kann man jedoch leicht noch andere Benutzer/Rollen hinzu fügen.
 \subsubsection{Realm Einstellungen}
 
 \begin{lstlisting}[
@@ -51,16 +51,101 @@ Ein Realm in Keycloak ist ein isolierter Sicherheitsbereich. Er umfasst Benutzer
   "realm": "cesc",
   "enabled": true,
   "sslRequired": "external",
-  "bruteForceProtected": true,
-  "loginWithEmailAllowed": true
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true
 }
 \end{lstlisting}
+In den wichtigsten Einstellungen wird unter anderem definiert das für alle externen Verbindungen SSL vorgeschrieben ist.
+Die Zeile \texttt{bruteForceProtected: true} ist eine einfache Absicherung gegen Brute Force Angriffe von Keycloak. Durch sie wird ein Account nach mehreren fehlgeschlagenen Anmeldungen Temporär gesperrt.
+Um zukünftige Admins der Webseite eine leichte und unkomplizierte Anmeldung zu ermöglichen ist das einloggen mit der email Adresse auch erlaubt.
 
 \subsubsection{Rollen}
-\subsubsection{Benutzer}
-\subsubsection{Clients}
+\begin{lstlisting}[
+    caption=Keycloak Realm Konfiguration,
+    label=lst:realmconfig,
+    basicstyle=\ttfamily\small
+]
+{
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administrator role for CESC application",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  }
+}
+\end{lstlisting}
+Die wie oben erwähnt zurzeit einzige Rolle \texttt{admin} hat kurtzgesatz Rechte auf alles. Durch die Zeile \texttt{" clientRole " : false} is sie zum Beispiel auch nicht auf einen Gewissen Client beschränk sondern hat im ganzen Realm auf alles Zugriff.
 
-\section{Reverse Proxy}
+\subsubsection{Benutzer}
+\begin{lstlisting}[
+    caption=Keycloak Realm Konfiguration,
+    label=lst:realmconfig,
+    basicstyle=\ttfamily\small
+]
+{
+"users": [
+    {
+      "username": "herbsthofer",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Herbsthofer",
+      "email": "herbsthofer@example.com",
+
+      "realmRoles": [
+        "admin"
+      ]
+    }
+  ]
+}
+\end{lstlisting}
+Der Zurzeit einzige User \texttt{herbsthofer} erhält durch die Zuweisung der admin Rolle, \texttt{'' realmRoles '' : ['' admin '']} alle Administrator rechte.
+\subsubsection{Clients}
+\begin{lstlisting}[
+    caption=Keycloak Realm Client Konfiguration,
+    label=lst:realmconfig,
+    basicstyle=\ttfamily\small
+]
+{
+   "clients": [
+    {
+      "clientId": "cesc-frontend",
+      "name": "CESC Frontend Application",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "redirectUris": [
+        "https://192.168.20.202/*",
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "https://192.168.20.202",
+        "http://localhost:4200"
+      ]
+    },
+    {
+      "clientId": "cesc-backend",
+      "name": "CESC Backend API",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    }
+  ]
+}
+\end{lstlisting}
+Für unsere Anwendung werden nur zwei Clients benötigt. Der \texttt{cesc-frontend} Client ist der öffentliche Client (\texttt{publicClient: true}) für die Angular Anwendung. Die \texttt{redirectUris} und \texttt{webOrigins} legen die erlaubten URLs für die Produktion (192.168.20.202) und die lokale Entwicklung (localhost:4200) fest. Der \texttt{cesc-backend} Client ist als vertraulicher Client gemacht, da er keine Login Page bereitstellt.(\texttt{publicClient: false}).
+
+\section{Reverse Proxy [Elias Mahr]}
 \setauthor{Elias Mahr}
 
 Nginx ist als eigener Docker Container mit nginx.conf implimentiert. Nur der Port 443 ist öffentlich mit Let's Encrypt-Zertifikaten.
