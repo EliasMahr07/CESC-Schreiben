@@ -182,6 +182,98 @@ Die Ports werden Pfadbasiert weitergeleitet:
 \end{itemize}
 
 
+
+\section{Angular}
+\setauthor{Elias Mahr}
+
+\subsection{Components}
+\subsubsection{start-list-container}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.2]{pics/start-list-container.png}
+    \caption{Startlist Component}
+    \label{fig:FrontendButton}
+\end{figure}
+
+Die ``StartListContainerComponent'' dient als Startseite der Anwendung.
+Dort wird bei öffnen schon eine Komplette Übersicht über alles Verfügbaren Baustellen in der Datenbank gegeben.
+Die Seite ist in 3 Wesentliche Abschnitte unterteilt: 
+\begin{itemize}
+  \item \textbf{Titel}
+  
+  Ganz ober sieht man sofort den Titel unserer Arbeit(C-E-S-C) mit dem  Vollausgeschriebenen Titel darunter(Container-Energy-Security-Controll).
+  \item \textbf{Baustellen Übersicht}
+  
+  Links auf 1/4 der breite sind alle Baustellen aufgelistet, ganz unten die Kalender Komponente. Bei der Auflistung werden die Namen der Baustellen aus der Datenbank genommen. Die ausgewählte Baustelle wird immer Gelb mit Ramen markiert, so auch wenn die Maus darüber Hovert. In diesem Fall wird das Element auch ein wenig eingerückt.
+  \item \textbf{Container Übersicht}
+  
+  Rechts bis Mittig zu 3/4 der Breite ist die Übersicht der Jeweiligen Container zu einer Baustelle. Die Angezeigten Container werden bei Klicken auf eine anderen Baustelle gewechselt. Optisch wird unterschieden zwischen Main-Container und normalen Container. 
+  
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{pics/mainContainer.png}
+        \caption{Main Container}
+        \label{fig:anmeldebutton}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{pics/normalContainer.png}
+        \caption{normaler Container}
+        \label{fig:abmeldebutton}
+    \end{subfigure}
+    \caption{unterschied der Container}
+    \label{fig:loginbuttons}
+\end{figure}
+
+  Durch Gelben Rand und der Kennzeichnung ``MAIN'' neben dem Container Namen.
+  Bei Klick auf eine Componente wird man zum jeweiligen Dashboard weiter geleitet.
+  Der Name(im Screenshot z.B. \texttt{Container\_1}), wird aus der Datenbank
+  genommen und kann natürlich auf Wunsch geändert werden.
+  Deffaultmäßig ist es zurzeit ``\texttt{Container\_n}''.
+
+\end{itemize}
+
+\subsubsection{calender-editor}
+
+\subsubsection{dashboard}
+
+\subsubsection{door-logs}
+
+\subsubsection{kalender}
+
+\subsubsection{login-modal}
+
+\subsubsection{navbar}
+
+\subsubsection{plotly-chart}
+
+
+
+
+\begin{itemize}
+\item can- und Logout-Buttonslender-editor
+\item dashboard
+\item door-logs
+\item kalender
+\item login-modal
+\item navbar
+\item plotly-chart
+\item start-list-container
+\end{itemize}
+
+\subsubsection{Services}
+
+
+
+
+
+
+
+
 Siehe tolle Daten in Tab. \ref{tab:impl:data}.
 \setauthor{Elias Mahr}
 
@@ -201,3 +293,5 @@ Dann betrachte den Code in Listing \ref{lst:impl:foo}.
     \caption{Ein paar tabellarische Daten}
     \label{tab:impl:data}
 \end{table}
+
+
