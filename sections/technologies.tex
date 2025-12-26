@@ -1,5 +1,83 @@
-\section{Mqtt}
-\setauthor{Stefan Schwammal}
+\section{Hardware und Betriebssystem [Leopold Mistelberger]}
+
+\subsection{Raspberry Pi mit Ubuntu [Leopold Mistelberger]}
+\setauthor{Leopold Mistelberger}
+
+\subsection{Beschreibung und Rolle}
+Der Raspberry Pi 5 ist ein kleiner, kompakter Computer, der als zentrales Gehirn eines oder mehrerer umliegende Baustellencontainer dient. Er übernimmt die Erfassung sämtlicher Sensordaten, die Steuerung der Aktoren und die Kommunikation mit der Datenbank sowie dem Proxmox-Server im Unternehmen.
+
+
+\subsection{Technische Eigenschaften}
+\begin{itemize}
+    \item Leistungsfähiger Prozessor 
+    \item 16 Gigabyte Arbeitsspeicher
+    \item Netzwerkanschluss
+    \item 4x USB-Anschlüsse
+    \item GPIO-Pins
+    \item Kompakt
+    \item Langlebig
+    \item Energieeffizient
+    \item Kompatibel mit Ubuntu
+\end{itemize}
+
+\subsection{Begründung der Wahl}
+Der Raspberry Pi war für CESC die perfekte Wahl, da er alle unsere technischen Voraussetzungen erfüllt. Dazu zählen ein USB-Anschluss für den Zigbee-Dongle, ein Netzwerkanschluss für die Kommunikation mit Servern und der Datenbank sowie ein leistungsstarker Prozessor für die Ausführung unserer Programme. Ubuntu wurde als Betriebssystem gewählt, um eine bessere Wartbarkeit und Zuverlässigkeit aller eingesetzten Softwaredienste zu gewährleisten. Der Raspberry Pi ermöglicht somit eine zuverlässige Steuerung der Baustellencontainer.
+
+
+
+
+
+
+
+
+
+
+\subsection{Proxmox [Leopold Mistelberger]}
+\setauthor{Leopold Mistelberger}
+
+\section{Kommunikation und Automatisierung [Leopold Mistelberger]}
+\subsection{Zigbee [Leopold Mistelberger]}
+\setauthor{Leopold Mistelberger}
+
+\subsection{MQTT [Leopold Mistelberger]}
+\setauthor{Leopold Mistelberger}
+
+\subsection{Home Assistant [Leopold Mistelberger]}
+\setauthor{Leopold Mistelberger}
+
+\section{Container- und Laufzeitumgebung [Leopold Mistelberger]}
+\subsection{Docker [Leopold Mistelberger]}
+\setauthor{Leopold Mistelberger}
+
+\subsection{GitHub Container Registry (ghcr.io) [Leopold Mistelberger]}
+\setauthor{Leopold Mistelberger}
+
+\section{Server- und Infrastrukturtechnologien [Elias Mahr]}
+\setauthor{Elias Mahr}
+
+
+\section{Reverse Proxy [Elias Mahr]}
+\setauthor{Elias Mahr}
+Ein Revers Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegen genommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Durch dies werden die echten Adressen verschleiert.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.15]{pics/ReverseProxy.png}
+    \caption{Reverse Proxy (Quelle: \url{https://commons.wikimedia.org/wiki/File:Reverse_proxy_h2g2bob.svg}, Lizenz: CC0)}
+    \label{fig:ReverseProxy}
+\end{figure}
+
+\subsection{Nutzen in der Diplomarbeit}
+Hauptsächlich gibt es drei Hauptgründe weshalb wir ein Reversproxy einbauen wollten/mussten.
+\begin{itemize}
+\item \underline{Keycloaks https Redirects:}
+Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandarts um zum Beispiel Man in the Middle Angriffe zu verhindern.
+\item \underline{Port Chaos:}
+Mit vielen verschiedenen Ports wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken und im Docker Netzwerk würde es ständig Konflikte geben.
+\item \underline{Sicherheit:}
+Umso mehr Ports öffentlich zugänglich sind umso mehr Angriffsfläche gibt es für eine Potenzielle Bedrohung. Ports wie 5000 für das Backend sind von außen gar nicht erreichbar so bleiben die internen Dienste unsichtbar. Auch wenn die Webaplikation nur durch das Intranet erreicht werden kann ist eine zusätzliche Sicherheitsstufe nie ein Fehler. 
+\end{itemize}
+
 
 \section{Keycloak [Elias Mahr]}
 \setauthor{Elias Mahr}
@@ -26,24 +104,3 @@ Strom wird immer Teurer. Bei durchgehender Nutzung auch an Tagen an denen nieman
 
 
 
-\section{Reverse Proxy [Elias Mahr]}
-\setauthor{Elias Mahr}
-Ein Revers Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegen genommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Durch dies werden die echten Adressen verschleiert.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.15]{pics/ReverseProxy.png}
-    \caption{Reverse Proxy (Quelle: \url{https://commons.wikimedia.org/wiki/File:Reverse_proxy_h2g2bob.svg}, Lizenz: CC0)}
-    \label{fig:ReverseProxy}
-\end{figure}
-
-\subsection{Nutzen in der Diplomarbeit}
-Hauptsächlich gibt es drei Hauptgründe weshalb wir ein Reversproxy einbauen wollten/mussten.
-\begin{itemize}
-\item \underline{Keycloaks https Redirects:}
-Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandarts um zum Beispiel Man in the Middle Angriffe zu verhindern.
-\item \underline{Port Chaos:}
-Mit vielen verschiedenen Ports wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken und im Docker Netzwerk würde es ständig Konflikte geben.
-\item \underline{Sicherheit:}
-Umso mehr Ports öffentlich zugänglich sind umso mehr Angriffsfläche gibt es für eine Potenzielle Bedrohung. Ports wie 5000 für das Backend sind von außen gar nicht erreichbar so bleiben die internen Dienste unsichtbar. Auch wenn die Webaplikation nur durch das Intranet erreicht werden kann ist eine zusätzliche Sicherheitsstufe nie ein Fehler. 
-\end{itemize}
