@@ -104,3 +104,24 @@ Strom wird immer Teurer. Bei durchgehender Nutzung auch an Tagen an denen nieman
 
 
 
+\section{Reverse Proxy [Elias Mahr]}
+\setauthor{Elias Mahr}
+Ein Revers Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegen genommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Durch dies werden die echten Adressen verschleiert.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.15]{pics/ReverseProxy.png}
+    \caption{Reverse Proxy (Quelle: \url{https://commons.wikimedia.org/wiki/File:Reverse_proxy_h2g2bob.svg}, Lizenz: CC0)}
+    \label{fig:ReverseProxy}
+\end{figure}
+
+\subsection{Nutzen in der Diplomarbeit}
+Hauptsächlich gibt es drei Hauptgründe weshalb wir ein Reversproxy einbauen wollten/mussten.
+\begin{itemize}
+\item \underline{Keycloaks https Redirects:}
+Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandarts um zum Beispiel Man in the Middle Angriffe zu verhindern.
+\item \underline{Port Chaos:}
+Mit vielen verschiedenen Ports wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken und im Docker Netzwerk würde es ständig Konflikte geben.
+\item \underline{Sicherheit:}
+Umso mehr Ports öffentlich zugänglich sind umso mehr Angriffsfläche gibt es für eine Potenzielle Bedrohung. Ports wie 5000 für das Backend sind von außen gar nicht erreichbar so bleiben die internen Dienste unsichtbar. Auch wenn die Webaplikation nur durch das Intranet erreicht werden kann ist eine zusätzliche Sicherheitsstufe nie ein Fehler. 
+\end{itemize}
