@@ -26,14 +26,43 @@ Der Raspberry Pi war für CESC die perfekte Wahl, da er alle unsere technischen 
 
 
 
-
-
-
-
-
-
 \subsection{Proxmox [Leopold Mistelberger]}
 \setauthor{Leopold Mistelberger}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.2]{pics/proxmox_logo.png}
+    \caption{Proxmox Virtual Environment Logo}
+    \label{fig:proxmoxlogo}
+\end{figure}
+
+Proxmox Virtual Environment (Proxmox VE) ist eine Plattform zur Servervirtualisierung, die Open Source ist. 
+Sie erlaubt den Betrieb mehrerer virtueller Systeme auf einer einzigen physischen Hardware und findet häufig Anwendung in Unternehmensumgebungen. 
+
+
+Die Verwaltung wird zentral über eine webbasierte Benutzeroberfläche durchgeführt. 
+Weitere Details finden Sie auf Proxmox offizieller Website (\url{https://www.proxmox.com}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.45]{pics/proxmox_architecture.png}
+    \caption{Architektur von Proxmox Virtual Environment}
+    \label{fig:proxmoxarchitecture}
+\end{figure}
+
+Proxmox läuft auf einem Linux-Hostsystem und verwendet verschiedene Virtualisierungstechnologien. Proxmox fügt zwischen der Hardware und den Anwendungen eine Virtualisierungsschicht ein. Diese dient dazu, Systeme, die auf derselben Hardware laufen, voneinander zu trennen.
+
+Virtuelle Maschinen (VMs) verhalten sich dabei jeweils wie ein eigener Computer mit einem eigenen Betriebssystem. Dadurch sind sie vollständig voneinander getrennt. CPU, Arbeitsspeicher und Speicherplatz werden im Vorhinein fest zugewiesen. Eine VM ist somit vollständig von anderen Systemen isoliert.
+
+Zusätzlich unterstützt Proxmox Container auf Basis von Linux Containers (LXC). Container sind im Vergleich zu VMs leichter und schneller, da sie sich den Linux-Kernel des Servers teilen und arbeiten dadurch deutlich effizienter. Dadurch benötigen sie wenige Ressourcen und eignen sich sehr für den Betrieb Dienste oder Anwedungen.
+
+Die Vorteile von Proxmox liegen unter anderem darin, dass keine Lizenzkosten anfallen, da Proxmox kostenlos verfügbar ist. Dadurch können die Betriebskosten eines Unternehmens gesenkt werden, insbesondere da Virtualisierungslösungen für virtuelle Maschinen zunehmend kostenintensiver werden. Zudem ermöglicht Proxmox eine effizientere Nutzung der vorhandenen Hardware, während die Systeme sauber voneinander getrennt bleiben. Durch das webbasierte Interface erhält der Benutzer eine gute Übersicht, da alle Systeme zentral verwaltet werden können.
+
+
+\ref{fig:proxmoxarchitecture} dargestellt.
+
+
 
 \section{Kommunikation und Automatisierung [Leopold Mistelberger]}
 \subsection{Zigbee [Leopold Mistelberger]}
@@ -41,6 +70,59 @@ Der Raspberry Pi war für CESC die perfekte Wahl, da er alle unsere technischen 
 
 \subsection{MQTT [Leopold Mistelberger]}
 \setauthor{Leopold Mistelberger}
+
+
+
+\subsubsection{Beschreibung}
+MQTT (Message Queuing Telemetry Transport) ist ein leichtgewichtiges Nachrichtenprotokoll, das nach dem sogenannten \textit{Publish-Subscribe-Prinzip} arbeitet \cite{mqtt_org}. Dieses Protokoll wurde speziell für die Übertragung von Daten mit geringer Bandbreite oder instabiler Verbindung entwickelt. Es arbeitet ereignisbasiert und eignet sich besonders für Projekte, bei denen viele Geräte regelmäßig kleine Datenmengen wie Temperatur oder Luftfeuchtigkeit senden, wie beispielsweise in CESC.
+
+\subsubsection{Komponenten und Funktionsweise}
+Bei MQTT gibt es drei zentrale Komponenten, die nach dem Pub-Sub-Prinzip arbeiten:
+
+\begin{itemize}
+    \item \textbf{Publisher:} Ein Gerät oder Programm, das bestimmte Daten an den Broker sendet. In den meisten Fällen handelt es sich hierbei um einen Sensor.
+    \item \textbf{Broker:} Meist ein zentraler Server, der alle Nachrichten empfängt und an die richtigen Empfänger weiterleitet.
+    \item \textbf{Subscriber:} Ein Gerät oder Programm, das bestimmte Daten abonniert und diese empfängt.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{pics/mqtt_pub_sub.png} 
+    \caption{MQTT-Architektur: Publisher, Broker, Subscriber (Quelle: \url{https://mqtt.org/assets/img/mqtt-publish-subscribe.png}, Lizenz: CC0)}
+    \label{fig:mqtt_architektur}
+    
+\end{figure}
+
+Die Daten werden in sogenannten \textit{Topics} organisiert. Ein Publisher sendet Nachrichten an ein bestimmtes Topic, während Subscriber dieses Topic abonnieren. Der Broker übernimmt die Verteilung der Nachrichten, ohne dass sich Sender und Empfänger direkt kennen müssen.
+
+\subsubsection{Beispielhafte Nutzung}
+Um Daten zu empfangen, muss ein Subscriber ein bestimmtes Topic abonnieren. Beispielsweise möchte man die Raumtemperatur eines Containers auslesen. Dazu wird ein Subscriber auf das entsprechende Topic gesetzt:
+
+\begin{lstlisting}[language=bash, caption={Subscriber für Raumtemperatur des Containers 147}]
+mosquitto_sub -h <Broker-IP> -t "container/147/raum1/temperatur"
+\end{lstlisting}
+
+Neben dem Empfangen von Daten kann man auch Aktoren steuern, wie zum Beispiel die Heizung des Containers. Um diese einzuschalten, verwendet man den folgenden Publisher-Befehl:
+
+\begin{lstlisting}[language=bash, caption={Heizung des Containers 147 einschalten}]
+mosquitto_pub -h <Broker-IP> -t "container/147/raum1/heizung" -m "ON"
+\end{lstlisting}
+
+
+
+
+
+\subsubsection{Vorteile von MQTT}
+MQTT bietet mehrere Vorteile gegenüber klassischen Kommunikationsprotokollen:
+
+\begin{itemize}
+    \item Geringer Netzwerk- und Ressourcenverbrauch
+    \item Zuverlässige Datenübertragung auch bei instabilen Verbindungen
+    \item Klare Trennung von Sendern und Empfängern
+    \item Hohe Skalierbarkeit bei vielen beteiligten Geräten
+    \item Besonders geeignet für IoT- und Sensornetzwerke
+\end{itemize}
+
 
 \subsection{Home Assistant [Leopold Mistelberger]}
 \setauthor{Leopold Mistelberger}
