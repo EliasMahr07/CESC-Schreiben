@@ -10,7 +10,7 @@
     \label{fig:FrontendButton}
 \end{figure}
 
-Um die Webapp möglichst unkompliziert und Benutzerfreundlich zu halten ist der Button wie im Screenshot rechts oben in der Ecke platziert. Unabhängig vom Scroll-Zustand oder der aktuell ausgewählten Page bleibt er auch immer dort, um sich sofort und schnell anmelden zu können.
+Um die Webapp möglichst unkompliziert und benutzerfreundlich zu halten, ist der Button wie im Screenshot rechts oben in der Ecke platziert. Unabhängig vom Scroll-Zustand oder der aktuell ausgewählten Page bleibt er auch immer dort, um sich sofort und schnell anmelden zu können.
 
 \begin{figure}[H]
     \centering
@@ -36,10 +36,10 @@ Das Icon stammt aus der Font Awesome Bibliothek:
 \lstinline[language=HTML]{<i class="fas fa-sign-in-alt"></i>}
 \\
 Bei Klick darauf wird man weitergeleitet zum Pfad:\\ \texttt{https://192.168.20.202/auth/realms/cesc/protocol/openid-connect\\/auth?client\_id=cesc-frontend\&redirect\_uri=https...} 
-Hier kommt dann die Standart Keycloak Login Page. Nach erfolgreicher Anmeldung bekommt der User seinen Token, wird automatisch wieder umgeleitet zur vorher besuchten Seite und es werden alle Funktionen der Webseite freigeschalten.
+Unter dieser Url kommt dann die Standard Keycloak Login Page. Nach erfolgreicher Anmeldung bekommt der User seinen Token, wird automatisch wieder zur vorher besuchten Seite umgeleitet und es werden alle Funktionen der Webseite freigeschalten.
 
-\subsection{das Realm}
-Ein Realm in Keycloak ist ein isolierter Sicherheitsbereich. Er umfasst Benutzer, Rollen, Clients und Policies für eine bestimmte Anwendung. Wir haben ein Realm namens ``cesc'' erstellt. Es definiert die gesamte Identifikation und Authorisierung für die Weboberfläche. Zurzeit ist es möglichst klein gehalten, jedoch vollkommen ausreichend. Ein Admin User(herbsthofer) steuert alles, in Zukunft kann man jedoch leicht noch andere Benutzer/Rollen hinzu fügen.
+\subsection{Der Realm}
+Ein Realm in Keycloak ist ein isolierter Sicherheitsbereich. Er umfasst Benutzer, Rollen, Clients und Policies für eine bestimmte Anwendung. Der Realm namens ``cesc'' definiert die gesamte Identifikation und Authorisierung für die Weboberfläche. Zurzeit ist es möglichst klein gehalten, jedoch vollkommen ausreichend. Ein Admin User(herbsthofer) steuert alles, in Zukunft kann man jedoch leicht noch andere Benutzer/Rollen hinzu fügen.
 \subsubsection{Realm Einstellungen}
 
 \begin{lstlisting}[
@@ -82,7 +82,7 @@ Um zukünftige Admins der Webseite eine leichte und unkomplizierte Anmeldung zu 
   }
 }
 \end{lstlisting}
-Die wie oben erwähnt zurzeit einzige Rolle \texttt{admin} hat kurtzgesatz Rechte auf alles. Durch die Zeile \texttt{" clientRole " : false} is sie zum Beispiel auch nicht auf einen Gewissen Client beschränk sondern hat im ganzen Realm auf alles Zugriff.
+Die wie oben erwähnt zurzeit einzige Rolle \texttt{admin} hat kurz gesagt Rechte auf alles. Durch die Zeile \texttt{" clientRole " : false} is sie zum Beispiel auch nicht auf einen Gewissen Client beschränk sondern hat im ganzen Realm auf alles Zugriff.
 
 \subsubsection{Benutzer}
 \begin{lstlisting}[
@@ -184,6 +184,7 @@ Die Ports werden Pfadbasiert weitergeleitet:
 
 
 \section{Angular}
+Da da Projekt nicht nur am Desktop bediehnt werden kann ist die ganze Applikation responsive gemacht. 
 \setauthor{Elias Mahr}
 
 \subsection{Components}
@@ -237,7 +238,62 @@ Die Seite ist in 3 Wesentliche Abschnitte unterteilt:
 
 \end{itemize}
 
+
+
 \subsubsection{calender-editor}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.15]{pics/CalenderEditor.png}
+    \caption{Calender Editor Component}
+    \label{fig:CalenderEditor}
+\end{figure}
+Die \texttt{calender-editor} Componente ist Teil des ``Kalender'' Elements der \texttt{start-list-component}.
+Als erstes sieht man sofort den Kalender, bei dem immer das aktuelle Monat ausgewählt ist. Im Kalender wird zwischen zwei Arten von Urlauben unterschieden.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.3\textwidth]{pics/Betriebsurlaub.png}
+        \caption{Betriebsurlaub}
+        \label{fig:betriebsurlaub}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.29\textwidth]{pics/Feiertag.png}
+        \caption{Feiertag}
+        \label{fig:feiertag}
+    \end{subfigure}
+    \caption{unterschied der Urlaube}
+    \label{fig:holidays}
+\end{figure}
+
+Einmal Betriebsurlaub: Gelb markiert und ein Feiertag: Grau markiert. 
+An diesen markierten Tagen werden die Container nicht eingeschalten.
+Unter dem Kalender findet man dann noch eine Liste mit allen Urlauben für das Aktuelle Jahr und den Betriebsurlauben.
+Nach erfolgreicher Anmeldung wird der ``bearbeiten'' Button freigeschaltet und sie können Umgeändert werden.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.4\textwidth]{pics/Freigschalten.png}
+        \caption{Freigeschalten}
+        \label{fig:betriebsurlaub}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.42\textwidth]{pics/lockd.png}
+        \caption{ohne Anmeldung}
+        \label{fig:feiertag}
+    \end{subfigure}
+    \caption{Bearbeiten Button}
+    \label{fig:bearbeiten}
+\end{figure}
+
+Die Feiertage werden von einer API geladen.
 
 \subsubsection{dashboard}
 

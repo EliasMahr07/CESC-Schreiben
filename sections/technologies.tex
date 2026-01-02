@@ -138,26 +138,28 @@ MQTT bietet mehrere Vorteile gegenüber klassischen Kommunikationsprotokollen:
 \setauthor{Elias Mahr}
 
 
-\section{Reverse Proxy [Elias Mahr]}
+\section{Reverse-Proxy [Elias Mahr]}
 \setauthor{Elias Mahr}
-Ein Revers Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegen genommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Durch dies werden die echten Adressen verschleiert.
+Ein Reverse-Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegen genommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Durch dies werden die echten Adressen verschleiert.
 
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.15]{pics/ReverseProxy.png}
-    \caption{Reverse Proxy (Quelle: \url{https://commons.wikimedia.org/wiki/File:Reverse_proxy_h2g2bob.svg}, Lizenz: CC0)}
+    \caption{Reverse-Proxy (Quelle: \url{https://commons.wikimedia.org/wiki/File:Reverse_proxy_h2g2bob.svg}, Lizenz: CC0)}
     \label{fig:ReverseProxy}
 \end{figure}
 
 \subsection{Nutzen in der Diplomarbeit}
-Hauptsächlich gibt es drei Hauptgründe weshalb wir ein Reversproxy einbauen wollten/mussten.
+Hauptsächlich gibt es drei Hauptgründe weshalb ein Reverse-Proxy eingebaut werden musste.
 \begin{itemize}
 \item \underline{Keycloaks https Redirects:}
-Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandarts um zum Beispiel Man in the Middle Angriffe zu verhindern.
+Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandards um zum Beispiel Man-in-the-Middle-Angriffe zu verhindern.
 \item \underline{Port Chaos:}
-Mit vielen verschiedenen Ports wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken und im Docker Netzwerk würde es ständig Konflikte geben.
+Mit vielen verschiedenen Ports wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken.
 \item \underline{Sicherheit:}
-Umso mehr Ports öffentlich zugänglich sind umso mehr Angriffsfläche gibt es für eine Potenzielle Bedrohung. Ports wie 5000 für das Backend sind von außen gar nicht erreichbar so bleiben die internen Dienste unsichtbar. Auch wenn die Webaplikation nur durch das Intranet erreicht werden kann ist eine zusätzliche Sicherheitsstufe nie ein Fehler. 
+Zur Reduzierung der Angriffsfläche sollten nur zwingend notwendige Ports öffentlich erreichbar sein. Jeder zusätzlich exponierte Dienst erhöht das Risiko potenzieller Angriffe.
+Interne Dienste, wie beispielsweise Backend-Services auf Port 5000, sind nicht von außen erreichbar und bleiben dadurch vor direktem Zugriff geschützt. Die Trennung zwischen öffentlich zugänglichen Komponenten und internen Services stellt eine grundlegende Sicherheitsmaßnahme dar.
+Auch wenn eine Webapplikation ausschließlich innerhalb des Intranets betrieben wird, ist der Einsatz zusätzlicher Sicherheitsmechanismen sinnvoll. Eine mehrschichtige Sicherheitsstrategie (Defense in Depth) trägt dazu bei, das Gesamtrisiko weiter zu reduzieren.
 \end{itemize}
 
 
@@ -173,15 +175,15 @@ Umso mehr Ports öffentlich zugänglich sind umso mehr Angriffsfläche gibt es f
 Keycloak ist ein Open Source System, das die sichere Anmeldung und die Rechteverwaltung für unsere Anwendungen übernimmt. Die Anwendungen schicken die Anmeldung an Keycloak und müssen das Speichern und das Prüfen von Benutzerkonten nicht mehr selbst erledigen. So kann die Anwendung sich auf das Wesentliche konzentrieren, während Keycloak die Anmeldung und die Rechte im Hintergrund mit Sicherheitsstandards für Unternehmen regelt.
 
 \subsection{Grundidee und Zweck}
-Die Firma Herbsthofer legt sehr großen Wert auf Sicherheit. Die externe Bedienung von Heizung, Kühlung und Beleuchtung kann, wenn es ausgenutzt wird zu erheblichen Schäden führen.
+Die Firma Herbsthofer legt sehr großen Wert auf Sicherheit. Die externe Bedienung von Heizung, Kühlung und Beleuchtung kann, wenn es ausgenutzt wird, zu erheblichen Schäden führen.
 
 \begin{itemize}
 \item Mitarbeiterschutz:
-Bei voll eingeschalteter Kühlung an kalten Wintertagen kann es zu Gesundheitlichen Schäden in Form von verkühlungen bei Arbeitern/Arbeiterinnen führen, die auch mit einem Ausfall für ein paar Tage enden können und so der Firma Geld kosten.
+Bei voll eingeschalteter Kühlung an kalten Wintertagen kann es zu gesundheitlichen Schäden in Form von Verkühlungen bei Arbeitern/Arbeiterinnen führen, die auch mit einem Ausfall für ein paar Tage enden können und so der Firma Geld kosten.
 \item Brandgefahr:
-Nicht zu vergessen ist auch die erhöhte Brandgefahr. Unkontrollierte Heizbetriebe auf einer zu hohen Temperaturstufe kann im Schlimmsten Fall zu Bränden führen und so erheblichen Schaden anrichten und Personenschaden mit sich führen.
+Nicht zu vergessen ist auch die erhöhte Brandgefahr. Unkontrollierte Heizbetriebe auf einer zu hohen Temperaturstufe kann im schlimmsten Fall zu Bränden führen und so erheblichen Schaden anrichten und Personenschaden mit sich führen.
 \item Kosten: 
-Strom wird immer Teurer. Bei durchgehender Nutzung auch an Tagen an denen niemand im Container ist, ist erstens der Schaden an der Umwelt durch extreme Ressourcen Verschwändung zu Beachten. Jedoch auch die immensen, unnötigen Kosten die, die Firma bei Ihrer Stromrechnung erwarten.
+Strom wird immer teurer. Bei durchgehender Nutzung auch an Tagen, an denen niemand im Container ist, ist erstens der Schaden an der Umwelt durch extreme Ressourcen Verschwendung zu beachten. Zudem entstehen für das Unternehmen hohe, vermeidbare Stromkosten.
 \end{itemize}
 
 \section{Cronjob}
