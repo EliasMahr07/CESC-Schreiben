@@ -167,6 +167,9 @@ Die Ports werden Pfadbasiert weitergeleitet:
             proxy_busy_buffers_size 256k;
         }
 \end{lstlisting}
+
+
+
 \item \underline{http://frontend:80 $\to$ location/}
 \begin{lstlisting}[language=bash, caption=Nginx Konfiguration /, label=lst:nginx:/]
         location / {
@@ -184,7 +187,7 @@ Die Ports werden Pfadbasiert weitergeleitet:
 
 
 \section{Angular}
-Da da Projekt nicht nur am Desktop bediehnt werden kann ist die ganze Applikation responsive gemacht. 
+Da da Projekt nicht nur am Desktop bedient werden kann ist die ganze Applikation responsive gemacht. 
 \setauthor{Elias Mahr}
 
 \subsection{Components}
@@ -240,15 +243,16 @@ Die Seite ist in 3 Wesentliche Abschnitte unterteilt:
 
 
 
-\subsubsection{calender-editor}
+\subsubsection{Calendar}
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.15]{pics/CalenderEditor.png}
-    \caption{Calender Editor Component}
+    \caption{Kalender Element}
     \label{fig:CalenderEditor}
 \end{figure}
-Die \texttt{calender-editor} Componente ist Teil des ``Kalender'' Elements der \texttt{start-list-component}.
-Als erstes sieht man sofort den Kalender, bei dem immer das aktuelle Monat ausgewählt ist. Im Kalender wird zwischen zwei Arten von Urlauben unterschieden.
+Die \texttt{Calender} Componente erscheint wenn man in der \text{start-list-component} kein Baustelle sondern das blaue \text{Kalender} 
+Element antippt. Als erstes sieht man sofort den Kalender, bei dem immer das aktuelle Monat ausgewählt ist.
+Im Kalender wird zwischen zwei Arten von Urlauben unterschieden.
 
 \begin{figure}[H]
     \centering
@@ -272,7 +276,7 @@ Als erstes sieht man sofort den Kalender, bei dem immer das aktuelle Monat ausge
 Einmal Betriebsurlaub: Gelb markiert und ein Feiertag: Grau markiert. 
 An diesen markierten Tagen werden die Container nicht eingeschalten.
 Unter dem Kalender findet man dann noch eine Liste mit allen Urlauben für das Aktuelle Jahr und den Betriebsurlauben.
-Nach erfolgreicher Anmeldung wird der ``bearbeiten'' Button freigeschaltet und sie können Umgeändert werden.
+Die Feiertage werden von einer API geladen. Nach erfolgreicher Anmeldung wird der ``bearbeiten'' Button freigeschaltet und sie können Umgeändert werden.
 
 \begin{figure}[H]
     \centering
@@ -293,17 +297,65 @@ Nach erfolgreicher Anmeldung wird der ``bearbeiten'' Button freigeschaltet und s
     \label{fig:bearbeiten}
 \end{figure}
 
-Die Feiertage werden von einer API geladen.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.15]{pics/calender-component.png}
+    \caption{Betriebsurlaube bearbeiten}
+    \label{fig:Calender}
+\end{figure}
+
+Bei Klick auf de Butten kann dann der Betriebsurlaub simpel bearbeitet werden.
+Die neuen Daten werden direkt in die Datenbank gespeichert und sofort vom Cronjob beachtet. Dabei wird natürlich auch geprüft ob die Daten im korrekten Format eingeben wurden.
+Um dies zu erleichtern wird beim eingeben eines neuen Datums sofort ein kleiner Kalender geöffnet auf dem ein neues Datum ausgewählt werden kann. Dies ist einer vorgefertigte Funktion von html wenn man die input type date verwendet.
+
+\begin{lstlisting}[
+    caption=label im html,
+    label=lst:htmlcalender,
+    basicstyle=\ttfamily\small
+]
+{
+    <label>Von: <input type="date" [(ngModel)]="modalFrom"></label>
+}
+\end{lstlisting}
+
 
 \subsubsection{dashboard}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.15]{pics/dashboard.png}
+    \caption{Dashboard}
+    \label{fig:Dashboard}
+\end{figure}
+
+Wenn man auf den Button \texttt{Dashboard} in der \texttt{start-list-componente} bei einem Container Tippt kommt man zur \texttt{dashboard} Komponente. 
+Diese Hauptfunktion der Applikation ist für jeden Container individuell von den jeweiligen Daten.
+Der Aufbau ist jedoch überall gleich. Die Componente ist so gestaltet das sie jederzeit erweitert werden kann. 
+Für jeden Sensor ist ein eigener abgetrennter Abschnitt auf der Webseite. Bei Erweiterung des Systems durch die Firma
+kann ein weiterer Abschnitt jederzeit leicht hinzugefügt werden ohne Rücksicht auf die anderen Componenten nehmen zu müssen.
+
+Ganz oben in der Componente sieht man die Überschrift mit dem Namen des Containers. Der erste Abschnitt ist Direkt eine übersichtliche Temperatur anzeige von Innen- und Außensensor.
+Fett ist die Temperatur da das die wichtigste Anzeige im Container ist. Darunter gleich noch in ein wenig kleiner die Luftfeuchtigkeit und Abschließend noch die Anzeige der restlichen Batterie, um rechtzeitig zu erkenne wann die Batterien gewechselt werden sollten.
+Ein Detailierter verlauf kann dann noch mit dem Button ``Verlauf'' angezeigt werden. Dazu aber dann in dieser Componente mehr.
+
 \subsubsection{door-logs}
 
-\subsubsection{kalender}
-
-\subsubsection{login-modal}
-
-\subsubsection{navbar}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{pics/doorLogs.png}
+        \label{fig:doorLogsUp}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{pics/doorLogsDown.png}
+        \label{fig:doorLogsdown}
+    \end{subfigure}
+    \caption{Door Logs Componente}
+    \label{fig:doorLogs}
+\end{figure}
 
 \subsubsection{plotly-chart}
 
@@ -315,8 +367,6 @@ Die Feiertage werden von einer API geladen.
 \item dashboard
 \item door-logs
 \item kalender
-\item login-modal
-\item navbar
 \item plotly-chart
 \item start-list-container
 \end{itemize}
