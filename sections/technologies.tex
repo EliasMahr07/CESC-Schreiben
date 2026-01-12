@@ -229,3 +229,147 @@ So können komplizierte Zeit Schaltungen auch gebaut werden. Mit / können Schri
 
 \section{Api}
 \setauthor{Elias Mahr}
+
+\section{Backend}
+\setauthor{Timon Schmalzer}
+
+\subsection{ASP.NET Core \& C\#}
+\setauthor{Timon Schmalzer}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.2]{pics/aspnetcore_logo.png}
+    \caption{ASP.NET Core Logo (Quelle: campusMVP GitHub Repository, \url{https://github.com/campusMVP/dotnetCoreLogoPack}, Lizenz: CC BY-SA 4.0)}
+    \label{fig:aspnetcorelogo}
+\end{figure}
+
+ASP.NET Core ist ein modernes, plattformübergreifendes Framework von Microsoft zur Entwicklung von Webanwendungen und APIs. Es ist die Weiterentwicklung des klassischen ASP.NET Frameworks und wurde von Grund auf neu entwickelt, um performanter, modularer und flexibler zu sein.
+
+\subsubsection{Grundlagen und Eigenschaften}
+
+ASP.NET Core ist ein \textbf{Open-Source Framework}, das auf der .NET-Plattform basiert. Im Gegensatz zu seinem Vorgänger läuft ASP.NET Core nicht nur auf Windows, sondern auch auf \textbf{Linux und macOS}, was es zu einer idealen Wahl für containerisierte Anwendungen macht.
+
+Die wichtigsten Merkmale von ASP.NET Core sind:
+
+\begin{itemize}
+    \item \textbf{Hohe Performance:} ASP.NET Core gehört zu den schnellsten Web-Frameworks weltweit und ist besonders bei vielen gleichzeitigen Anfragen sehr effizient.
+    \item \textbf{Plattformunabhängigkeit:} Durch die Cross-Platform-Unterstützung kann die Anwendung auf verschiedenen Betriebssystemen entwickelt und deployed werden.
+    \item \textbf{Modular aufgebaut:} Das Framework verwendet ein schlankes Kern-System, das nur die wirklich benötigten Komponenten lädt.
+    \item \textbf{Dependency Injection:} Ein eingebautes DI-System ermöglicht eine saubere Architektur und bessere Testbarkeit.
+    \item \textbf{Cloud-ready:} Perfekt geeignet für Cloud-Deployments und Container-Orchestrierung mit Docker.
+\end{itemize}
+
+\subsubsection{C\# als Backend-Sprache}
+
+Die Programmiersprache \textbf{C\#} (C-Sharp) ist eine moderne, objektorientierte Sprache, die speziell für die .NET-Plattform entwickelt wurde. Sie kombiniert die Leistungsfähigkeit von C++ mit der Einfachheit von Java.
+
+Vorteile von C\# für Backend-Entwicklung:
+
+\begin{itemize}
+    \item \textbf{Type Safety:} Durch statische Typisierung werden viele Fehler bereits zur Compile-Zeit erkannt, nicht erst zur Laufzeit.
+    \item \textbf{Async/Await Pattern:} Native Unterstützung für asynchrone Programmierung, was besonders bei I/O-intensiven Operationen wie Datenbankzugriffen wichtig ist.
+    \item \textbf{LINQ (Language Integrated Query):} Ermöglicht das einfache Filtern und Transformieren von Datensammlungen direkt in C\#.
+    \item \textbf{Moderne Sprachfeatures:} Pattern Matching, Records, Nullable Reference Types und viele weitere Features, die den Code sauberer und sicherer machen.
+    \item \textbf{Große Community:} Als etablierte Enterprise-Sprache gibt es umfangreiche Dokumentation und Community-Support.
+\end{itemize}
+
+\subsubsection{RESTful API Architektur}
+
+Das Backend des CESC-Projekts ist als \textbf{REST API} (Representational State Transfer) konzipiert. REST ist ein Architekturstil für verteilte Systeme, der auf HTTP-Methoden basiert:
+
+\begin{itemize}
+    \item \textbf{GET:} Daten abrufen (z.B. Container-Informationen, Sensordaten)
+    \item \textbf{POST:} Neue Ressourcen erstellen (z.B. neue Kalenderregel)
+    \item \textbf{PUT:} Bestehende Ressourcen aktualisieren (z.B. Container-Namen ändern)
+    \item \textbf{DELETE:} Ressourcen löschen (z.B. Kalenderregel entfernen)
+\end{itemize}
+
+Die API kommuniziert über \textbf{JSON} (JavaScript Object Notation) als Datenformat, da dies sowohl menschen- als auch maschinenlesbar ist und sich perfekt für die Kommunikation zwischen Frontend und Backend eignet.
+
+\subsubsection{Warum ASP.NET Core für CESC?}
+
+Die Wahl von ASP.NET Core für das Backend der CESC-Anwendung basiert auf mehreren Überlegungen:
+
+\begin{itemize}
+    \item \textbf{Performance bei IoT-Daten:} Die Anwendung muss in der Lage sein, regelmäßig Sensordaten von mehreren Containern zu verarbeiten. ASP.NET Core bietet hierfür die nötige Performance.
+    
+    \item \textbf{Docker-Kompatibilität:} Da die gesamte Anwendung containerisiert deployed wird, ist die plattformunabhängige Natur von ASP.NET Core essentiell.
+    
+    \item \textbf{Enterprise-Standard:} Die Firma Herbsthofer setzt auf bewährte, sichere Technologien. ASP.NET Core wird von Microsoft Enterprise-Support unterstützt.
+    
+    \item \textbf{Integration mit Keycloak:} Die eingebaute JWT-Authentication in ASP.NET Core vereinfacht die Integration mit dem Keycloak Identity Provider erheblich.
+    
+    \item \textbf{Zukunftssicherheit:} Microsoft investiert kontinuierlich in .NET und ASP.NET Core. Die aktuell verwendete Version .NET 8.0 hat Long-Term-Support bis November 2026.
+    
+    \item \textbf{Entwickler-Produktivität:} Durch die starke Typisierung, IntelliSense-Unterstützung und umfangreiche Tooling-Unterstützung in Visual Studio und VS Code können Features schneller und fehlerfreier entwickelt werden.
+\end{itemize}
+
+\subsection{Swagger/OpenAPI - API Dokumentation}
+\setauthor{Timon Schmalzer}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{pics/Swagger-logo.png}
+    \caption{Swagger Logo (Quelle: https://commons.wikimedia.org/wiki/File:Swagger-logo.png, Lizenz: CC BY-SA 4.0)}
+    \label{fig:swaggerlogo}
+\end{figure}
+
+Swagger ist ein Framework zur Dokumentation und zum Testen von REST APIs. Es generiert automatisch eine interaktive Dokumentation, die alle verfügbaren Endpoints, ihre Parameter und Rückgabewerte übersichtlich darstellt.
+
+\subsubsection{Beschreibung und Zweck}
+
+OpenAPI (früher bekannt als Swagger) ist ein Standard zur Beschreibung von REST APIs. Die Spezifikation definiert, wie eine API strukturiert ist, welche Endpoints existieren und welche Daten sie erwarten und zurückgeben. In ASP.NET Core wird dies durch die \textbf{Swashbuckle.AspNetCore} Bibliothek realisiert.
+
+Die Hauptvorteile von Swagger sind:
+
+\begin{itemize}
+    \item \textbf{Automatische Dokumentation:} Die API-Dokumentation wird direkt aus dem Code generiert und ist immer aktuell.
+    \item \textbf{Interaktives Testing:} Entwickler können API-Endpoints direkt im Browser testen, ohne zusätzliche Tools wie Postman zu benötigen.
+    \item \textbf{Klare Übersicht:} Alle verfügbaren Endpoints, HTTP-Methoden und Datenmodelle werden strukturiert angezeigt.
+    \item \textbf{Client-Code-Generierung:} Aus der OpenAPI-Spezifikation können automatisch Client-Bibliotheken für verschiedene Programmiersprachen generiert werden.
+\end{itemize}
+
+\subsubsection{Funktionsweise in CESC}
+
+Im CESC-Backend ist Swagger so konfiguriert, dass es nur im \textbf{Development-Modus} verfügbar ist. In der Production-Umgebung ist die Swagger-UI aus Sicherheitsgründen deaktiviert, da sie Details über die API-Struktur preisgibt.
+
+Die Swagger-UI zeigt alle verfügbaren Endpoints übersichtlich gruppiert nach Controllern:
+
+\begin{itemize}
+    \item \textbf{CalendarController:} Endpoints zur Verwaltung von Kalenderregeln (GET, POST, DELETE)
+    \item \textbf{ContainersController:} Endpoints zum Abrufen und Verwalten von Container-Daten
+    \item \textbf{SensorsController:} Endpoints für aktuelle Sensordaten
+    \item \textbf{PlugControlController:} Endpoints zur Steuerung von Steckdosen (Heizung, Kühlung, Licht)
+    \item \textbf{DoorsController:} Endpoints zum Abrufen des Türstatus
+\end{itemize}
+
+\subsubsection{HTTP-Methoden in der Swagger-UI}
+
+Swagger visualisiert die verschiedenen HTTP-Methoden farblich, um sie auf einen Blick unterscheidbar zu machen:
+
+\begin{itemize}
+    \item \textbf{GET (Blau):} Daten abrufen, z.B. \texttt{GET /api/containers}
+    \item \textbf{POST (Grün):} Neue Ressourcen erstellen, z.B. \texttt{POST /api/calendar/\{containerId\}}
+    \item \textbf{PUT (Orange):} Ressourcen aktualisieren
+    \item \textbf{DELETE (Rot):} Ressourcen löschen, z.B. \texttt{DELETE /api/calendar/\{containerId\}}
+\end{itemize}
+
+\subsubsection{Authentication in Swagger}
+
+Da die CESC-API durch Keycloak geschützt ist, muss auch in Swagger ein JWT-Token für geschützte Endpoints angegeben werden. Swagger bietet hierfür einen \textbf{\glqq Authorize\grqq}-Button, über den ein Bearer-Token eingegeben werden kann.
+
+Nach erfolgreicher Anmeldung bei Keycloak kann das erhaltene JWT-Token in Swagger eingetragen werden. Alle nachfolgenden API-Aufrufe werden dann automatisch mit diesem Token authentifiziert.
+
+\subsubsection{Vorteile für die Entwicklung}
+
+Während der Entwicklungsphase von CESC erwies sich Swagger als äußerst hilfreich:
+
+\begin{itemize}
+    \item \textbf{Frontend-Backend-Abstimmung:} Das Frontend-Team konnte die verfügbaren Endpoints und deren Datenstrukturen direkt einsehen, ohne in den Backend-Code schauen zu müssen.
+    
+    \item \textbf{Schnelles Testing:} Neue Endpoints konnten sofort nach der Implementierung über Swagger getestet werden, bevor sie ins Frontend integriert wurden.
+    
+    \item \textbf{Fehlerbehebung:} Bei Problemen konnte schnell überprüft werden, ob das Backend korrekte Daten zurückliefert oder ob der Fehler im Frontend liegt.
+    
+    \item \textbf{Dokumentation für die Firma:} Die Swagger-Dokumentation dient auch als Referenz für zukünftige Entwickler oder Wartungspersonal der Firma Herbsthofer.
+\end{itemize}

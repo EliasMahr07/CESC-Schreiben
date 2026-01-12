@@ -1,28 +1,38 @@
+\setauthor{Elias Mahr}
+
 \begin{spacing}{1}
-    \chapter*{Abstract}
+    \chapter*{Abstract [Timon Schmalzer]}
 \end{spacing}
 \begin{wrapfigure}{r}{0.3\textwidth}
     \begin{center}
       \includegraphics[width=0.2\textwidth]{pics/question_mark.png}
     \end{center}
 \end{wrapfigure}
-Brief summary of our amazing work. In English.
-This is the only time we have to include a picture within the text.
-The picture should somehow represent your thesis.
-This is untypical for scientific work but required by the powers that are.
+CESC is an automated control system that enables company managers and site supervisors to reduce their company’s energy costs and monitor overall energy consumption at construction sites.
+
+Using the developed software for energy data management, energy data can be efficiently collected, stored, and analyzed.
+
+The application allows users to access and evaluate the energy data of their construction sites from anywhere, as well as centrally control the available power sources.
+
+The system is based on the interaction of hardware and software components and follows the Internet of Things (IoT) principle. Each power source and all analysis components can be addressed and controlled via the MQTT protocol.
+
+The backend, developed in C\#, provides a REST API that is used by the web application to display measurement data and transmit control commands. In addition, all data is stored in a Firebase database to enable further analysis and to temporarily store scheduled actions that are to be executed on site.
+
+Furthermore, the system includes an integrated calendar that allows the automatic control of power sources to be scheduled in order to further optimize energy consumption. The calendar can also be used to manually deactivate power sources for specific periods of time, such as public holidays or weekends.
 
 \newpage
 \begin{spacing}{1}
-    \chapter*{Zusammenfassung}
+    \chapter*{Zusammenfassung [Timon Schmalzer]}
 \end{spacing}
-\begin{wrapfigure}{r}{0.3\textwidth}
-    \begin{center}
-      \includegraphics[width=0.2\textwidth]{pics/question_mark.png}
-    \end{center}
-\end{wrapfigure}
-Zusammenfassung unserer genialen Arbeit. Auf Deutsch.
-Das ist das einzige Mal, dass eine Grafik in den Textfluss eingebunden wird.
-Die gewählte Grafik soll irgendwie eure Arbeit repräsentieren.
-Das ist ungewöhnlich für eine wissenschaftliche Arbeit aber eine Anforderung der Obrigkeit.
-\emph{Bitte auf keinen Fall mit der Zusammenfassung verwechseln, die den Abschluss der Arbeit bildet!}
+CESC ist ein automatisches Kontrollsystem, das Geschäftsführern und Baustellenleitern ermöglicht, die Energiekosten ihres Unternehmens zu senken und den allgemeinen Energieverbrauch auf Baustellen zu überwachen.
+
+Mithilfe der entwickelten Software zur Verwaltung von Energiedaten können diese effizient gesammelt, gespeichert und analysiert werden.
+
+Die Applikation erlaubt es BenutzerInnen, von überall aus auf die Energiedaten ihrer Baustellen zuzugreifen, diese auszuwerten sowie vorhandene Stromquellen zentral zu steuern.
+
+Das System basiert auf einem Zusammenspiel von Hardware- und Softwarekomponenten und folgt dem IoT-(Internet of Things-)Prinzip. Jede Stromquelle sowie alle Analysekomponenten können über das MQTT-Protokoll angesprochen und gesteuert werden.
+
+Das auf C\# basierende Backend stellt eine REST-API zur Verfügung, die von der Webapplikation genutzt wird, um Messdaten darzustellen und Steuerbefehle zu übermitteln. Zusätzlich werden sämtliche Daten in einer Firebase-Datenbank gespeichert, um eine spätere Analyse zu ermöglichen sowie geplante Aktionen zwischenzuspeichern, die vor Ort ausgeführt werden sollen.
+
+Des Weiteren bietet das System einen integrierten Kalender, mit dem die automatische Steuerung der Stromquellen zeitlich geplant werden kann, um den Energieverbrauch weiter zu optimieren. Der Kalender kann außerdem verwendet werden, um Stromquellen für bestimmte Zeiträume manuell zu deaktivieren, beispielsweise an Feiertagen oder Wochenenden.
 
