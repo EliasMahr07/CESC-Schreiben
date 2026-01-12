@@ -166,25 +166,6 @@ Auch wenn eine Webapplikation ausschließlich innerhalb des Intranets betrieben 
 \section{Auswahl der Technologie - Sicherheit(Authentifizierung)}
 \setauthor{Elias Mahr}
 
-\subsection{Selbsterstellter Login Mechanismus}
-Eine nicht sichere aber durchaus mögliche Option wäre eine selbstgeschriebene Login Componente die Passwort und Nutzer Gehasht in der Datenbank speichert. 
-\subsubsection{Vorteile}
-Diese Option hätte den Vorteil einerseits sehr geringe Ressourcen zu beanspruchen. Die Componente könnte man auch direkt ins Backend integrieren, dies wäre in unserem Fall für nur einen Nutzer nicht sehr Zeitaufwändig. Alles könnte direkt nach den Wunsch der Firma gebaut werden.
-\subsubsection{Nachteile}
-Die Sicherheit bei einer Selbsterstellten Componente ist für Firmen nicht ausreichend. Herbsthofer Liegt sehr viel wert auf Sicherheit und dafür ist eine selbst erstellte Componente möglicherweise nicht geeignet.
-Für erfahrene Hacker könnte so ein Login ein leichtes sein um als Admin auf die Webseite zu kommen mit zum Beispiel einem Brute Force Angriff. Auch von Nachteil ist, dass sollte die Webapp von der Firma in Zukunft erweitert werden ist dies sehr schwierig und muss von einem externen Programmierer gemacht werden.
-
-\subsection{Vorgefertigter Login (Keycloak [Elias Mahr])}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.15]{pics/KeycloakLogo.png}
-    \caption{Keycloak Logo}
-    \label{fig:KeycloakLogo}
-\end{figure}
-Keycloak ist ein Open Source System, das die sichere Anmeldung und die Rechteverwaltung für unsere Anwendungen übernimmt. Die Anwendungen schicken die Anmeldung an Keycloak und müssen das Speichern und das Prüfen von Benutzerkonten nicht mehr selbst erledigen. So kann die Anwendung sich auf das Wesentliche konzentrieren, während Keycloak die Anmeldung und die Rechte im Hintergrund mit Sicherheitsstandards für Unternehmen regelt.
-
-\subsubsection{Grundidee und Zweck}
 Die Firma Herbsthofer legt sehr großen Wert auf Sicherheit. Die externe Bedienung von Heizung, Kühlung und Beleuchtung kann, bei unsachgemäßer Nutzung, zu erheblichen Mehrkosten und mitunter auch zu Schäden führen.
 
 \begin{itemize}
@@ -195,6 +176,33 @@ Nicht zu vergessen ist auch die erhöhte Brandgefahr. Unkontrollierte Heizbetrie
 \item Kosten: 
 Strom wird immer teurer. Bei durchgehender Nutzung auch an Tagen, an denen niemand im Container ist, ist erstens der Schaden an der Umwelt durch extreme Ressourcen Verschwendung zu beachten. Zudem entstehen für das Unternehmen hohe, vermeidbare Stromkosten.
 \end{itemize}
+
+Um dieses Sicherheitsproblem zu Lösen gibt es mehrere Ansätze.
+
+\subsection{Selbsterstellter Login Mechanismus}
+Eine nicht sichere aber durchaus mögliche Option wäre eine selbstgeschriebene Login Componente die Passwort und Nutzer Gehasht in der Datenbank speichert. 
+\subsubsection{Vorteile}
+Diese Option hätte den Vorteil einerseits sehr geringe Ressourcen zu beanspruchen. Die Componente könnte man auch direkt ins Backend integrieren, dies wäre in unserem Fall für nur einen Nutzer nicht sehr Zeitaufwändig. Alles könnte direkt nach den Wunsch der Firma gebaut werden.
+\subsubsection{Nachteile}
+Die Sicherheit bei einer Selbsterstellten Componente ist für Firmen nicht ausreichend. Selbst erstellte Componenten sind möglicherweise dafür nicht geeignet.
+Für erfahrene Hacker könnte so ein Login ein leichtes sein um als Admin auf die Webseite zu kommen mit zum Beispiel einem Brute Force Angriff. Auch von Nachteil ist, dass sollte die Webapp von der Firma in Zukunft erweitert werden ist dies sehr schwierig und muss von einem externen Programmierer gemacht werden.
+
+\subsection{Vorgefertigter Login (Keycloak [Elias Mahr])}
+
+Das Ziel ist immer so viele Vorgefertigte Systeme wie möglich zu verwenden, solange sie den erforderlichen Anforderungen entsprechen. Eines davon ist in diesem Fall Keycloak.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.15]{pics/KeycloakLogo.png}
+    \caption{Keycloak Logo}
+    \label{fig:KeycloakLogo}
+\end{figure}
+
+\subsubsection{Vorteile}
+Keycloak ist ein Open Source System(das heißt Gratis), das die sichere Anmeldung und die Rechteverwaltung für eine Anwendung übernimmt. Die Anwendungen schicken die Anmeldung an Keycloak und müssen das Speichern und das Prüfen von Benutzerkonten nicht mehr selbst erledigen. So kann die Anwendung sich auf das Wesentliche konzentrieren, während Keycloak die Anmeldung und die Rechte im Hintergrund mit Sicherheitsstandards für Unternehmen regelt.
+In der Grafischen Oberfläche des Systems ist das erweitern der Funktionen, zum Beispiel das neue Anlegen von Usern oder eine neue Rechtevergabe, auch für Menschen ohne Vorkenntnisse im Programmieren sehr einfach. Sollte sich die Firma entscheiden unsere Webapp zu erweitern ist das sehr von Vorteil da sie keine eigene Programmierabteilung im Haus haben.
+\subsubsection{Nachteile}
+Im Vergleich zu einer Selbsterstellten Lösung hat Keycloak einen sehr hohen Ressourcen verbrauch der Teilweise für Funktionen gebraucht werden die in unserer Webapp nicht implementiert sind. Das erstellen eines Logins mit Keycloak ist sehr Zeitintensiv und nimmt mehrere Tage in anspruch besonders für Entwickler die noch nie damit in Berührung gekommen sind
 
 \section{Cronjob}
 \setauthor{Elias Mahr}
