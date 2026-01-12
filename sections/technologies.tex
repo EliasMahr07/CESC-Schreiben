@@ -163,8 +163,18 @@ Auch wenn eine Webapplikation ausschließlich innerhalb des Intranets betrieben 
 \end{itemize}
 
 
-\section{Keycloak [Elias Mahr]}
+\section{Auswahl der Technologie - Sicherheit(Authentifizierung)}
 \setauthor{Elias Mahr}
+
+\subsection{Selbsterstellter Login Mechanismus}
+Eine nicht sichere aber durchaus mögliche Option wäre eine selbstgeschriebene Login Componente die Passwort und Nutzer Gehasht in der Datenbank speichert. 
+\subsubsection{Vorteile}
+Diese Option hätte den Vorteil einerseits sehr geringe Ressourcen zu beanspruchen. Die Componente könnte man auch direkt ins Backend integrieren, dies wäre in unserem Fall für nur einen Nutzer nicht sehr Zeitaufwändig. Alles könnte direkt nach den Wunsch der Firma gebaut werden.
+\subsubsection{Nachteile}
+Die Sicherheit bei einer Selbsterstellten Componente ist für Firmen nicht ausreichend. Herbsthofer Liegt sehr viel wert auf Sicherheit und dafür ist eine selbst erstellte Componente möglicherweise nicht geeignet.
+Für erfahrene Hacker könnte so ein Login ein leichtes sein um als Admin auf die Webseite zu kommen mit zum Beispiel einem Brute Force Angriff. Auch von Nachteil ist, dass sollte die Webapp von der Firma in Zukunft erweitert werden ist dies sehr schwierig und muss von einem externen Programmierer gemacht werden.
+
+\subsection{Vorgefertigter Login (Keycloak [Elias Mahr])}
 
 \begin{figure}[H]
     \centering
@@ -174,7 +184,7 @@ Auch wenn eine Webapplikation ausschließlich innerhalb des Intranets betrieben 
 \end{figure}
 Keycloak ist ein Open Source System, das die sichere Anmeldung und die Rechteverwaltung für unsere Anwendungen übernimmt. Die Anwendungen schicken die Anmeldung an Keycloak und müssen das Speichern und das Prüfen von Benutzerkonten nicht mehr selbst erledigen. So kann die Anwendung sich auf das Wesentliche konzentrieren, während Keycloak die Anmeldung und die Rechte im Hintergrund mit Sicherheitsstandards für Unternehmen regelt.
 
-\subsection{Grundidee und Zweck}
+\subsubsection{Grundidee und Zweck}
 Die Firma Herbsthofer legt sehr großen Wert auf Sicherheit. Die externe Bedienung von Heizung, Kühlung und Beleuchtung kann, bei unsachgemäßer Nutzung, zu erheblichen Mehrkosten und mitunter auch zu Schäden führen.
 
 \begin{itemize}
@@ -189,9 +199,22 @@ Strom wird immer teurer. Bei durchgehender Nutzung auch an Tagen, an denen niema
 \section{Cronjob}
 \setauthor{Elias Mahr}
 
-Um die Container wirklich voll automatisch ein und ausschalten zu können braucht man einen Cronjob auf dem Server. 
+Um die Container wirklich voll automatisch ein und ausschalten zu können, kam für uns nur die Verwendung eines Cronjob auf dem Server in Frage. Im Unterricht hatten wir bereits davon gehört.
 Ein Cron-Daemon ist ein Linux-Programm das meistens Shell Skripte Zeitgesteuert auslöst, sogenannte Cronjobs. 
 Somit kann man Aufgaben nach einem Zeitplan immer wiederholend ausführen.
+
+\subsection{Syntax}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{pics/Cronjob.png}
+    \caption{Cronjob Syntax}
+    \label{fig:CronjobSyntax}
+\end{figure}
+
+Jeder Cronjob ist eine Zeile in dem crontab File. Diese Zeile definiert mit der oben gezeigten Syntax wann und wie oft welches Skript ausgeführt werden soll.
+So können komplizierte Zeit Schaltungen auch gebaut werden. Mit / können Schritte definiert werden wie zum Beispiel bei Stunde = /6 würde heißen jede sechste Stunde. Auch gib es einen Operator mit dem man Bereiche definieren kann: -. 
+
 
 \section{Angular}
 \setauthor{Elias Mahr}
