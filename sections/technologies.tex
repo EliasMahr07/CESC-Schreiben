@@ -140,7 +140,7 @@ MQTT bietet mehrere Vorteile gegenüber klassischen Kommunikationsprotokollen:
 
 \section{Reverse-Proxy [Elias Mahr]}
 \setauthor{Elias Mahr}
-Ein Reverse-Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegen genommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Durch dies werden die echten Adressen verschleiert.
+Ein Reverse-Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegengenommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Dadurch werden die echten Adressen verschleiert.
 
 \begin{figure}[H]
     \centering
@@ -150,12 +150,12 @@ Ein Reverse-Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungi
 \end{figure}
 
 \subsection{Nutzen in der Diplomarbeit}
-Hauptsächlich gibt es drei Hauptgründe weshalb ein Reverse-Proxy eingebaut werden musste.
+Es gibt drei Hauptgründe, weshalb ein Reverse-Proxy eingebaut werden musste.
 \begin{itemize}
 \item \underline{Keycloaks https Redirects:}
-Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandards um zum Beispiel Man-in-the-Middle-Angriffe zu verhindern.
+Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandards, um zum Beispiel Man-in-the-Middle-Angriffe zu verhindern.
 \item \underline{Port Chaos:}
-Mit vielen verschiedenen Ports wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken.
+Mit vielen verschiedenen Ports, wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken.
 \item \underline{Sicherheit:}
 Zur Reduzierung der Angriffsfläche sollten nur zwingend notwendige Ports öffentlich erreichbar sein. Jeder zusätzlich exponierte Dienst erhöht das Risiko potenzieller Angriffe.
 Interne Dienste, wie beispielsweise Backend-Services auf Port 5000, sind nicht von außen erreichbar und bleiben dadurch vor direktem Zugriff geschützt. Die Trennung zwischen öffentlich zugänglichen Komponenten und internen Services stellt eine grundlegende Sicherheitsmaßnahme dar.
@@ -175,7 +175,7 @@ Auch wenn eine Webapplikation ausschließlich innerhalb des Intranets betrieben 
 Keycloak ist ein Open Source System, das die sichere Anmeldung und die Rechteverwaltung für unsere Anwendungen übernimmt. Die Anwendungen schicken die Anmeldung an Keycloak und müssen das Speichern und das Prüfen von Benutzerkonten nicht mehr selbst erledigen. So kann die Anwendung sich auf das Wesentliche konzentrieren, während Keycloak die Anmeldung und die Rechte im Hintergrund mit Sicherheitsstandards für Unternehmen regelt.
 
 \subsection{Grundidee und Zweck}
-Die Firma Herbsthofer legt sehr großen Wert auf Sicherheit. Die externe Bedienung von Heizung, Kühlung und Beleuchtung kann, wenn es ausgenutzt wird, zu erheblichen Schäden führen.
+Die Firma Herbsthofer legt sehr großen Wert auf Sicherheit. Die externe Bedienung von Heizung, Kühlung und Beleuchtung kann, bei unsachgemäßer Nutzung, zu erheblichen Mehrkosten und mitunter auch zu Schäden führen.
 
 \begin{itemize}
 \item Mitarbeiterschutz:
