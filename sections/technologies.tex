@@ -222,11 +222,104 @@ Somit kann man Aufgaben nach einem Zeitplan immer wiederholend ausführen.
 \end{figure}
 
 Jeder Cronjob ist eine Zeile in dem crontab File. Diese Zeile definiert mit der oben gezeigten Syntax, wann und wie oft welches Skript ausgeführt werden soll.
-So können auch komplizierte Zeitpläne für die Durchführung der Schaltungen gebaut werden. Mit / können Schritte definiert werden, wie zum Beispiel bei Stunde = /6 würde heißen jede sechste Stunde. Auch gib es einen Operator mit dem man Bereiche definieren kann: -. 
+So können auch komplizierte Zeitpläne für die Durchführung der Schaltungen gebaut werden. Mit / können Schritte definiert werden, wie zum Beispiel bei Stunde = /6. Das würde bedeuten, dass das angeführte Skript bzw. Programm jede 6. Stunde ausgeführt wird. 
+Mit dem Operator ``-'' können Bereiche definiert werden, z.B. Wochentag = 0-6. Das würde bedeuten, dass das ausgeführte Skript bzw. Programm täglich ausgeführt wird.
 
 
-\section{Angular}
+\section{Frontend}
 \setauthor{Elias Mahr}
+
+\subsection{Use Cases für die Webapp}
+\setauthor{Elias Mahr}
+
+\subsubsection{Baustellenübersicht anzeigen}
+Als Geschäftsführer der Firma Herbsthofer möchte ich alle derzeitigen Baustellen auf einen Blick sehen, weil ich schnell zwischen verschiedenen Baustellen wechseln möchte.
+
+Akzeptanzkriterien:
+\begin{itemize}
+    \item Alle Baustellen werden auf einen Blick übersichtlich angezeigt.
+    \item Wenn ich eine Baustelle auswähle, sollen in einer Detailansicht alle Container der Baustelle aufgelistet werden.
+    \item Es sollte kein Problem sein, eine Baustelle hinzuzufügen oder zu entfernen.
+\end{itemize}
+
+\subsubsection{Containerstatus überwachen}
+Als Geschäftsführer der Firma Herbsthofer  möchte ich den aktuellen Temperaturstatus aller Container einer Baustelle sehen, weil ich die sinnvolle Schaltung der Heizung kontrollieren muss und darauf achte, dass meine Mitarbeiter nicht beispielsweise im Winter die Türe offen lassen.
+
+Akzeptanzkriterien:
+\begin{itemize}
+    \item Innen- und Außentemperatur werden in Echtzeit angezeigt.
+    \item Luftfeuchtigkeit wird auch klein angezeigt.
+\end{itemize}
+
+
+\subsubsection{Anmeldung}
+Als Geschäftsführer der Firma Herbsthofer  möchte ich mich sicher am System anmelden wenn ich gewisse Funktionen nutzen möchte, weil sonnst Mitarbeiter die Funktionen ausnützen und somit Schäden verursachen könnten.
+
+Akzeptanzkriterien:
+\begin{itemize}
+    \item Zur Anmeldung wird etwas Vorgefertigtes genommen.
+    \item Alles sollte auf unternehmerischem Standard sein.
+    \item Nach erfolgreicher Anmeldung sollten die Urlaube bearbeitet werden können.
+\end{itemize}
+
+\subsubsection{Türzugriffe protokollieren}
+Als Geschäftsführer der Firma Herbsthofer  möchte ich alle Türöffnungen sehen, weil ich Einbrüche oder unbefugten Zugriff nachvollziehen muss.
+
+Akzeptanzkriterien:
+\begin{itemize}
+    \item Die Bewegungen der Türe werden aufgezeichnet und können im Nachhinein eingesehen werden. Es wird unterschieden zwischen Türbewegung in der Arbeitszeit und Türbewegung außerhalb der Arbeitszeit.
+    \item Im Frontend gibt es eine Visualisierung dieser Daten.
+\end{itemize}
+
+\subsubsection{Sensorverlaufsdaten analysieren}
+Als Geschäftsführer der Firma Herbsthofer  möchte ich vergangene Sensordaten visualisiert sehen, weil ich eventuelle Kosten nachvollziehen möchte.
+
+Akzeptanzkriterien:
+\begin{itemize}
+    \item Daten werden mit einem vorgefertigten Tool, zum Beispiel Grafana oder Plottly, visualisiert.
+    \item Es soll auf verschiedene Zeiträume gefiltert werden können.
+\end{itemize}
+
+\subsubsection{Sichere Kommunikation gewährleisten}
+Als Geschäftsführer der Firma Herbsthofer möchte ich dass alle Verbindungen geschützt sind, weil verhindert werden sollte, dass Hacker an geheime Daten kommen.
+
+Akzeptanzkriterien:
+\begin{itemize}
+    \item Nginx ist mit Reverse Proxy implementiert und es sind nur wirklich notwendige Ports öffentlich.
+    \item Let's Encrypt Zertifikat
+\end{itemize}
+
+\subsubsection{Energiekosten reduzieren}
+Als Geschäftsführer der Firma Herbsthofer möchte ich Heizung und Kühlung automatisch steuern, weil ich unnötige Energiekosten vermeiden möchte.
+
+Akzeptanzkriterien:
+\begin{itemize}
+    \item Container werden an Betriebsurlauben nicht beheizt/gekühlt
+    \item Container werden an Feiertagen nicht beheizt/gekühlt.
+    \item Container werden nur während der Arbeitszeit beheizt/gekühlt.
+    \item Dafür wird ein Cronjob am Server benutzt.
+\end{itemize}
+
+
+\subsubsection{Mobiler Zugriff}
+Als Geschäftsführer der Firma Herbsthofer   möchte ich die Webapp auf meinem Smartphone nutzen, weil ich für spontanes Nachsehen, auf zum Beispiel einer Baustelle, keinen Laptop/PC zur Verfügung habe
+
+Akzeptanzkriterien:
+\begin{itemize}
+    \item Die Webapp ist responsive.
+    \item Alle Features sind mobil genauso verfügbar.
+\end{itemize}
+
+\subsection{Use Case Diagram}
+\setauthor{Elias Mahr}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{pics/UseCase2.png}
+    \caption{Use Case Diagram}
+    \label{fig:UseCase}
+\end{figure}
+
 
 \section{Api}
 \setauthor{Elias Mahr}
