@@ -172,24 +172,25 @@ Die Firma Herbsthofer legt sehr großen Wert auf Sicherheit. Die externe Bedienu
 \item Mitarbeiterschutz:
 Bei voll eingeschalteter Kühlung an kalten Wintertagen kann es zu gesundheitlichen Schäden in Form von Verkühlungen bei Arbeitern/Arbeiterinnen führen, die auch mit einem Ausfall für ein paar Tage enden können und so der Firma Geld kosten.
 \item Brandgefahr:
-Nicht zu vergessen ist auch die erhöhte Brandgefahr. Unkontrollierte Heizbetriebe auf einer zu hohen Temperaturstufe kann im schlimmsten Fall zu Bränden führen und so erheblichen Schaden anrichten und Personenschaden mit sich führen.
+ Unkontrollierte Heizbetriebe auf einer zu hohen Temperaturstufe können im schlimmsten Fall zu Bränden führen und so erheblichen Schaden anrichten und auch Personenschaden mit sich führen.
 \item Kosten: 
-Strom wird immer teurer. Bei durchgehender Nutzung auch an Tagen, an denen niemand im Container ist, ist erstens der Schaden an der Umwelt durch extreme Ressourcen Verschwendung zu beachten. Zudem entstehen für das Unternehmen hohe, vermeidbare Stromkosten.
+Strom wird immer teurer. Bei durchgehender Nutzung auch an Tagen, an denen niemand im Container ist, ist erstens der Schaden an der Umwelt durch extreme Ressourcenverschwendung zu beachten. Zudem entstehen für das Unternehmen hohe, vermeidbare Stromkosten.
 \end{itemize}
 
-Um dieses Sicherheitsproblem zu Lösen gibt es mehrere Ansätze.
+Um dieses Sicherheitsproblem zu lösen gibt es mehrere Ansätze.
 
 \subsection{Selbsterstellter Login Mechanismus}
-Eine nicht sichere aber durchaus mögliche Option wäre eine selbstgeschriebene Login Componente die Passwort und Nutzer Gehasht in der Datenbank speichert. 
+Eine nicht sichere, aber durchaus mögliche Option wäre eine selbstgeschriebene Login Componente, die Passwort und Nutzer Gehasht in der Datenbank speichert. 
 \subsubsection{Vorteile}
-Diese Option hätte den Vorteil einerseits sehr geringe Ressourcen zu beanspruchen. Die Componente könnte man auch direkt ins Backend integrieren, dies wäre in unserem Fall für nur einen Nutzer nicht sehr Zeitaufwändig. Alles könnte direkt nach den Wunsch der Firma gebaut werden.
+Diese Option hätte den Vorteil einerseits sehr geringe Ressourcen zu beanspruchen. Die Componente könnte man auch direkt ins Backend integrieren, dies wäre in unserem Fall, für nur einen Nutzer, nicht sehr zeitaufwändig. Alles könnte direkt nach dem Wunsch der Firma gebaut werden.
 \subsubsection{Nachteile}
-Die Sicherheit bei einer Selbsterstellten Componente ist für Firmen nicht ausreichend. Selbst erstellte Componenten sind möglicherweise dafür nicht geeignet.
-Für erfahrene Hacker könnte so ein Login ein leichtes sein um als Admin auf die Webseite zu kommen mit zum Beispiel einem Brute Force Angriff. Auch von Nachteil ist, dass sollte die Webapp von der Firma in Zukunft erweitert werden ist dies sehr schwierig und muss von einem externen Programmierer gemacht werden.
+Die Sicherheit bei einer selbsterstellten Componente ist für Firmen nicht ausreichend. Selbst erstellte Componenten sind möglicherweise dafür nicht geeignet.
+Für erfahrene Hacker könnte so ein Login ein leichtes sein um als Admin auf die Webseite zu kommen mit zum Beispiel einem Brute Force Angriff.
+Ein weiterer Nachteil ist, dass es sehr kompliziert ist und von einem externen Programmierer gemacht werden müsste, wenn der Login erweitert werden würde.
 
 \subsection{Vorgefertigter Login (Keycloak [Elias Mahr])}
 
-Das Ziel ist immer so viele Vorgefertigte Systeme wie möglich zu verwenden, solange sie den erforderlichen Anforderungen entsprechen. Eines davon ist in diesem Fall Keycloak.
+Das Ziel ist immer, so viele vorgefertigte Systeme wie möglich zu verwenden, solange sie den erforderlichen Anforderungen entsprechen. Eines davon ist in diesem Fall Keycloak.
 
 \begin{figure}[H]
     \centering
@@ -199,16 +200,16 @@ Das Ziel ist immer so viele Vorgefertigte Systeme wie möglich zu verwenden, sol
 \end{figure}
 
 \subsubsection{Vorteile}
-Keycloak ist ein Open Source System(das heißt Gratis), das die sichere Anmeldung und die Rechteverwaltung für eine Anwendung übernimmt. Die Anwendungen schicken die Anmeldung an Keycloak und müssen das Speichern und das Prüfen von Benutzerkonten nicht mehr selbst erledigen. So kann die Anwendung sich auf das Wesentliche konzentrieren, während Keycloak die Anmeldung und die Rechte im Hintergrund mit Sicherheitsstandards für Unternehmen regelt.
-In der Grafischen Oberfläche des Systems ist das erweitern der Funktionen, zum Beispiel das neue Anlegen von Usern oder eine neue Rechtevergabe, auch für Menschen ohne Vorkenntnisse im Programmieren sehr einfach. Sollte sich die Firma entscheiden unsere Webapp zu erweitern ist das sehr von Vorteil da sie keine eigene Programmierabteilung im Haus haben.
+Keycloak ist ein Open Source System, das heißt, es ist öffentlich zugänglich und kostenlos. Diese Software übernimmt die sichere Anmeldung und die Rechteverwaltung für eine Anwendung übernimmt. Die Anwendungen schicken die Anmeldung an Keycloak und müssen das Speichern und das Prüfen von Benutzerkonten nicht mehr selbst erledigen. So kann die Anwendung sich auf das Wesentliche konzentrieren, während Keycloak die Anmeldung und die Rechte im Hintergrund mit Sicherheitsstandards für Unternehmen regelt.
+In der grafischen Oberfläche des Systems ist das Erweitern der Funktionen, zum Beispiel das neue Anlegen von Usern oder eine neue Rechtevergabe, auch für Menschen ohne Vorkenntnisse im Programmieren sehr einfach. Sollte sich die Firma entscheiden unsere Webapp zu erweitern ist das sehr von Vorteil, da sie keine eigene Programmierabteilung im Haus hat.
 \subsubsection{Nachteile}
-Im Vergleich zu einer Selbsterstellten Lösung hat Keycloak einen sehr hohen Ressourcen verbrauch der Teilweise für Funktionen gebraucht werden die in unserer Webapp nicht implementiert sind. Das erstellen eines Logins mit Keycloak ist sehr Zeitintensiv und nimmt mehrere Tage in anspruch besonders für Entwickler die noch nie damit in berührung gekommen sind
+Im Vergleich zu einer selbsterstellten Lösung hat Keycloak einen sehr hohen Ressourcenverbrauch, teilweise auch für Funktionen, die in unserer Webapp nicht implementiert sind. Das Erstellen eines Logins mit Keycloak ist sehr zeitintensiv und nimmt mehrere Tage in Anspruch, besonders für Entwickler, die noch nie damit in Berührung gekommen sind.
 
 \section{Cronjob}
 \setauthor{Elias Mahr}
 
-Um die Container wirklich voll automatisch ein und ausschalten zu können, kam für uns nur die Verwendung eines Cronjob auf dem Server in Frage. Im Unterricht hatten wir bereits davon gehört.
-Ein Cron-Daemon ist ein Linux-Programm das meistens Shell Skripte Zeitgesteuert auslöst, sogenannte Cronjobs. 
+Um die Container wirklich voll automatisch ein- und ausschalten zu können, kam für uns nur die Verwendung eines Cronjobs auf dem Server in Frage. Im Unterricht hatten wir bereits davon gehört.
+Ein Cron-Daemon ist ein Linux-Programm, das meistens Shell Skripte zeitgesteuert auslöst, sogenannte Cronjobs. 
 Somit kann man Aufgaben nach einem Zeitplan immer wiederholend ausführen.
 
 \subsection{Syntax}
@@ -220,8 +221,8 @@ Somit kann man Aufgaben nach einem Zeitplan immer wiederholend ausführen.
     \label{fig:CronjobSyntax}
 \end{figure}
 
-Jeder Cronjob ist eine Zeile in dem crontab File. Diese Zeile definiert mit der oben gezeigten Syntax wann und wie oft welches Skript ausgeführt werden soll.
-So können komplizierte Zeit Schaltungen auch gebaut werden. Mit / können Schritte definiert werden wie zum Beispiel bei Stunde = /6 würde heißen jede sechste Stunde. Auch gib es einen Operator mit dem man Bereiche definieren kann: -. 
+Jeder Cronjob ist eine Zeile in dem crontab File. Diese Zeile definiert mit der oben gezeigten Syntax, wann und wie oft welches Skript ausgeführt werden soll.
+So können auch komplizierte Zeitpläne für die Durchführung der Schaltungen gebaut werden. Mit / können Schritte definiert werden, wie zum Beispiel bei Stunde = /6 würde heißen jede sechste Stunde. Auch gib es einen Operator mit dem man Bereiche definieren kann: -. 
 
 
 \section{Angular}

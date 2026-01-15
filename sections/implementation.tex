@@ -222,17 +222,17 @@ Da das Projekt nicht nur am Desktop, sondern auch auf mobilen Devices zum Einsat
 
 Die ``StartListContainerComponent'' dient als Startseite der Anwendung.
 Beim Öffnen wird eine komplette Übersicht über alle in der Datenbank gespeicherten Baustellen angezeigt.
-Die Seite ist in 3 Wesentliche Abschnitte unterteilt: 
+Die Seite ist in drei wesentliche Abschnitte unterteilt: 
 \begin{itemize}
   \item \textbf{Titel}
   
   Ganz ober sieht man sofort den Titel unserer Arbeit(C-E-S-C) mit dem ausgeschriebenen Titel darunter(Container-Energy-Security-Controll).
   \item \textbf{Baustellenübersicht}
   
-  Links auf 1/4 der Breite sind alle Baustellen, mit ihrem in der Datenbank gespeicherten Namen, aufgelistet. Die ausgewählte Baustelle wird immer gelb mit Rahmen markiert, so auch wenn die Maus darüber Hovert. In diesem Fall wird das Element auch ein wenig eingerückt. Immer am Ende des Abteils ist das Kalenderelement. Dieses ist blau eingefärbt, damit man es gut von den Baustellen unterscheiden kann.
+  Links auf 1/4 der Breite sind alle Baustellen mit ihrem in der Datenbank gespeicherten Namen aufgelistet. Die ausgewählte Baustelle wird immer gelb mit Rahmen markiert, so auch beim Überfahren mit der Maus. In diesem Fall wird das Element auch ein wenig eingerückt. Immer am Ende des Abteils ist das Kalenderelement. Dieses ist blau eingefärbt, damit man es gut von den Baustellen unterscheiden kann.
   \item \textbf{Containerübersicht}
   
-  Rechts bis mittig zu 3/4 der Breite ist die Übersicht der jeweiligen Container zu einer Baustelle. Die angezeigten Container werden bei Klicken auf eine anderen Baustelle gewechselt. Optisch wird unterschieden zwischen Main-Container und normalen Container. 
+  Rechts bis mittig zu 3/4 der Breite ist die Übersicht der jeweiligen Container zu einer Baustelle. Mit dem Wechsel der Baustelle wird auch die Ansicht der Container aktualisiert. Bei dieser Ansicht werden Hauptcontainer optisch hervorgehoben.
   
 \begin{figure}[H]
     \centering
@@ -249,12 +249,12 @@ Die Seite ist in 3 Wesentliche Abschnitte unterteilt:
         \caption{normaler Container}
         \label{fig:abmeldebutton}
     \end{subfigure}
-    \caption{unterschied der Container}
+    \caption{Unterschiedliche Darstellung der Container}
     \label{fig:loginbuttons}
 \end{figure}
 
-  Durch Gelben Rand und der Kennzeichnung ``MAIN'' neben dem Container Namen.
-  Bei Klick auf eine Componente wird man zum jeweiligen Dashboard weiter geleitet.
+  Hauptcontainer erkennt man am gelben Rand und der Kennzeichnung ``MAIN'' neben dem Containernamen.
+  Mit Klick auf eine Componente wird man zum jeweiligen Dashboard weitergeleitet.
   Der Name(im Screenshot z.B. \texttt{Container\_1}), wird aus der Datenbank
   genommen und kann natürlich auf Wunsch geändert werden.
   Deffaultmäßig ist es zurzeit ``\texttt{Container\_n}''.
@@ -267,11 +267,11 @@ Die Seite ist in 3 Wesentliche Abschnitte unterteilt:
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.15]{pics/CalenderEditor.png}
-    \caption{Kalender Element}
+    \caption{Kalenderelement}
     \label{fig:CalenderEditor}
 \end{figure}
-Die \texttt{Calender} Componente erscheint wenn man in der \text{start-list-component} kein Baustelle sondern das blaue \text{Kalender} 
-Element antippt. Als erstes sieht man sofort den Kalender, bei dem immer das aktuelle Monat ausgewählt ist.
+Die \texttt{Calender} Componente erscheint, wenn man in der \text{start-list-component} keine Baustelle, sondern das blaue \text{Kalenderelement} 
+ antippt. Als erstes sieht man sofort den Kalender, bei dem immer das aktuelle Monat ausgewählt ist.
 Im Kalender wird zwischen zwei Arten von Urlauben unterschieden.
 
 \begin{figure}[H]
@@ -289,14 +289,14 @@ Im Kalender wird zwischen zwei Arten von Urlauben unterschieden.
         \caption{Feiertag}
         \label{fig:feiertag}
     \end{subfigure}
-    \caption{unterschied der Urlaube}
+    \caption{Unterschied der Urlaube}
     \label{fig:holidays}
 \end{figure}
 
-Einmal Betriebsurlaub: Gelb markiert und ein Feiertag: Grau markiert. 
-An diesen markierten Tagen werden die Container nicht eingeschalten.
-Unter dem Kalender findet man dann noch eine Liste mit allen Urlauben für das Aktuelle Jahr und den Betriebsurlauben.
-Die Feiertage werden von einer API geladen. Nach erfolgreicher Anmeldung wird der ``bearbeiten'' Button freigeschaltet und sie können Umgeändert werden.
+Betriebsurlaub wird gelb markiert und ein Feiertag grau.
+An diesen markierten Tagen werden die Container nicht eingeschaltet.
+Unter dem Kalender findet man noch eine Liste mit allen Urlauben für das aktuelle Jahr und den Betriebsurlauben.
+Die Feiertage werden von einer API geladen. Nach erfolgreicher Anmeldung wird der ``bearbeiten'' Button freigeschaltet und Umänderungen können vorgenommen werden.
 
 \begin{figure}[H]
     \centering
@@ -324,9 +324,9 @@ Die Feiertage werden von einer API geladen. Nach erfolgreicher Anmeldung wird de
     \label{fig:Calender}
 \end{figure}
 
-Bei Klick auf de Butten kann dann der Betriebsurlaub simpel bearbeitet werden.
-Die neuen Daten werden direkt in die Datenbank gespeichert und sofort vom Cronjob beachtet. Dabei wird natürlich auch geprüft ob die Daten im korrekten Format eingeben wurden.
-Um dies zu erleichtern wird beim eingeben eines neuen Datums sofort ein kleiner Kalender geöffnet auf dem ein neues Datum ausgewählt werden kann. Dies ist einer vorgefertigte Funktion von html wenn man die input type date verwendet.
+Bei Klick auf den Butten kann der Betriebsurlaub bearbeitet werden.
+Die neuen Daten werden direkt in die Datenbank gespeichert und sofort vom Cronjob beachtet. Dabei wird natürlich auch geprüft, ob die Daten im korrekten Format eingeben wurden.
+Um dies zu erleichtern wird beim Eingeben eines neuen Datums sofort ein kleiner Kalender geöffnet, auf dem ein neues Datum ausgewählt werden kann. Dies ist eine vorgefertigte Funktion von html wenn man die input type date verwendet.
 
 \begin{lstlisting}[
     caption=label im html,
@@ -348,15 +348,15 @@ Um dies zu erleichtern wird beim eingeben eines neuen Datums sofort ein kleiner 
     \label{fig:Dashboard}
 \end{figure}
 
-Wenn man auf den Button \texttt{Dashboard} in der \texttt{start-list-componente} bei einem Container Tippt kommt man zur \texttt{dashboard} Komponente. 
-Diese Hauptfunktion der Applikation ist für jeden Container individuell von den jeweiligen Daten.
-Der Aufbau ist jedoch überall gleich. Die Componente ist so gestaltet das sie jederzeit erweitert werden kann. 
+Wenn man auf den Button \texttt{Dashboard} in der \texttt{start-list-componente} bei einem Container klickt, kommt man zur \texttt{dashboard} Komponente. 
+Diese Hauptfunktion der Applikation ist für jeden Container individuell abhängig, von den jeweiligen Daten.
+Der Aufbau ist jedoch überall gleich. Die Componente ist so gestaltet, dass sie jederzeit erweitert werden kann. 
 Für jeden Sensor ist ein eigener abgetrennter Abschnitt auf der Webseite. Bei Erweiterung des Systems durch die Firma
-kann ein weiterer Abschnitt jederzeit leicht hinzugefügt werden ohne Rücksicht auf die anderen Componenten nehmen zu müssen.
+kann ein weiterer Abschnitt jederzeit leicht hinzugefügt werden, ohne Rücksicht auf die anderen Componenten nehmen zu müssen.
 
-Ganz oben in der Componente sieht man die Überschrift mit dem Namen des Containers. Der erste Abschnitt ist Direkt eine übersichtliche Temperatur anzeige von Innen- und Außensensor.
-Fett ist die Temperatur da das die wichtigste Anzeige im Container ist. Darunter gleich noch in ein wenig kleiner die Luftfeuchtigkeit und Abschließend noch die Anzeige der restlichen Batterie, um rechtzeitig zu erkenne wann die Batterien gewechselt werden sollten.
-Ein Detailierter verlauf kann dann noch mit dem Button ``Verlauf'' angezeigt werden. Dazu aber dann in dieser Componente mehr.
+Ganz oben in der Componente sieht man die Überschrift mit dem Namen des Containers. Der erste Abschnitt ist eine übersichtliche Temperaturanzeige von Innen- und Außensensor.
+Fettgedruckt ist die Temperatur, da das die wichtigste Anzeige im Container ist. Gleich darunter steht etwas kleiner die Luftfeuchtigkeit und abschließend noch die Anzeige der übrigen Batterie, um rechtzeitig zu erkennen, wann die Batterien gewechselt werden sollten.
+Ein detaillierter Verlauf kann dann noch mit dem Button ``Verlauf'' angezeigt werden. Dazu aber dann in dieser Componente mehr.
 
 \subsubsection{door-logs}
 
