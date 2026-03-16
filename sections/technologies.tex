@@ -548,3 +548,39 @@ Während der Entwicklungsphase von CESC erwies sich Swagger als äußerst hilfre
     
     \item \textbf{Dokumentation für die Firma:} Die Swagger-Dokumentation dient auch als Referenz für zukünftige Entwickler oder Wartungspersonal der Firma Herbsthofer.
 \end{itemize}
+
+\subsection{Backend-Sicherheits- und Architekturkonzepte}
+\setauthor{Timon Schmalzer}
+
+Neben dem verwendeten Framework spielen im Backend auch grundlegende Sicherheits- und Architekturkonzepte eine zentrale Rolle. Diese Konzepte sorgen dafür, dass die API wartbar, erweiterbar und im laufenden Betrieb stabil bleibt.
+
+\subsubsection{JWT-Bearer-Authentifizierung im Backend}
+
+Für geschützte API-Endpunkte wird im Backend eine JWT-Bearer-Authentifizierung eingesetzt. Dabei wird bei jeder Anfrage geprüft, ob ein gültiges Bearer-Token mitgesendet wurde. Nur bei erfolgreicher Prüfung wird der Zugriff auf geschützte Funktionen erlaubt.
+
+Zusätzlich können über Rollen im Token bestimmte Berechtigungen gesteuert werden. Dadurch ist es möglich, sensible Funktionen gezielt nur für berechtigte Benutzer freizugeben.
+
+\subsubsection{Dependency Injection}
+
+Das Backend verwendet das in ASP.NET Core integrierte Prinzip der Dependency Injection. Abhängigkeiten wie Services und Datenzugriffskomponenten werden dabei zentral registriert und zur Laufzeit automatisch bereitgestellt.
+
+Dieses Vorgehen bietet mehrere Vorteile:
+
+\begin{itemize}
+    \item klare Trennung der Verantwortlichkeiten
+    \item bessere Wartbarkeit des Codes
+    \item einfachere Erweiterbarkeit bei neuen Funktionen
+    \item bessere Testbarkeit einzelner Komponenten
+\end{itemize}
+
+\subsubsection{Repository Pattern}
+
+Für den Datenzugriff wird das Repository Pattern eingesetzt. Die eigentliche Datenquelle wird dabei von der Anwendungslogik getrennt, sodass Controller und Services nicht direkt mit Datenbankdetails arbeiten müssen.
+
+Dadurch bleibt der Code übersichtlicher und Änderungen an der Datenhaltung können leichter umgesetzt werden, ohne große Teile der Business-Logik anpassen zu müssen.
+
+\subsubsection{CORS als API-Schutzmechanismus}
+
+Da Frontend und Backend in unterschiedlichen Laufzeitumgebungen betrieben werden können, wird im Backend CORS (Cross-Origin Resource Sharing) verwendet. Damit wird kontrolliert, welche Ursprünge auf die API zugreifen dürfen.
+
+So wird verhindert, dass beliebige externe Webanwendungen ungeprüft Anfragen an die Schnittstelle senden können. Gleichzeitig bleibt die Kommunikation zwischen den vorgesehenen Systemkomponenten funktionsfähig.
