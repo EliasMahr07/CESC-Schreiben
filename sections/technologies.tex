@@ -315,7 +315,7 @@ Akzeptanzkriterien:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.3]{pics/UseCase3.png}
+    \includegraphics[scale=0.6]{pics/UseCase3.png}
     \caption{Use Case Diagram}
     \label{fig:UseCase}
 \end{figure}
@@ -323,6 +323,81 @@ Akzeptanzkriterien:
 \subsection{Nuxt.js [Elias Mahr]}
 \setauthor{Elias Mahr}
 
+Nuxt.js ist ein Full-Stack Framework aufbauend auf Vue.js. Um Nuxt.js genau zu verstehen werde ich zuerst einmal die Kernfunktionen von Vue.js erklären.
+
+\subsubsection{Vue.js}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.06]{pics/VueLogo.png}
+    \caption{Vue.js Logo (Quelle: Evan You, \url{https://github.com/vuejs/art/tree/9f8ee218d32b52c2d150212f22798a7a61689361}, Lizenz: CC BY 4.0)}
+    \label{fig:vuelogo}
+\end{figure}
+
+Vue.js ist ein leistungsstarkes JavaScript-Framework zur Erstellung von Benutzeroberflächen. Es basiert auf HTML, CSS und JavaScript und bietet umfangreiche APIs. Die Kernfunktion von Vue ist es, im Gegensatz zu reinem JavaScript, Zustandsänderungen automatisch zu erkennen und das UI reaktiv zu aktualisieren.
+
+\paragraph{Minibeispiel}
+Das folgende Beispiel zeigt die grundlegende Funktionsweise von Vue:
+
+\begin{lstlisting}[caption={Vue.js Counter Beispiel - JavaScript}]
+import { createApp, ref } from 'vue'
+
+createApp({
+  setup() {
+    return {
+      count: ref(0)
+    }
+  }
+}).mount('#app')
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Vue.js Counter Beispiel - HTML}]
+<div id="app">
+  <button @click="count++">
+    Count is: {{ count }}
+  </button>
+</div>
+\end{lstlisting}
+
+Ergebniss:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.6]{pics/VueBsp.png}
+    \caption{Vue Bsp. Ergebniss}
+    \label{fig:UseCase}
+\end{figure}
+
+\subsubsection{Nuxt.js}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{pics/NuxtLogo.png}
+    \caption{Nuxt Logo (Quelle: \url{https://nuxt.com/design-kit})}
+    \label{fig:nuxtdesignkit}
+\end{figure}
+
+Nuxt.js ist eine Erweiterung von Vue.js, mit der sich Webanwendungen mit Routing, automatischen Importen und serverseitigem Rendering schnell entwickeln lassen. Das Framework übernimmt viele architektonische Aufgaben, damit sich Entwickler stärker auf die eigentliche Implementierung konzentrieren können.
+
+Einige wichtige Funktionen von Nuxt.js sind:
+
+\begin{itemize}
+    \item \textbf{Rendering-Optionen:} Nuxt unterstützt verschiedene Arten des Renderings. Je nach Anwendungsfall kann zwischen serverseitigem Rendering, clientseitigem Rendering und statischer Seitengenerierung gewählt werden.
+        
+    \item \textbf{Datenabruf:} Nuxt bietet zusätzliche Funktionen, die das Laden von Daten aus Datenbanken oder APIs vereinfachen. Dadurch können Daten effizient in Seiten eingebunden oder angezeigt werden mit jeder möglichen Strategie.
+    
+    \item \textbf{Fehlerbehandlung:} Nuxt stellt integrierte Methoden zur Fehlerbehandlung bereit.
+    
+    \item \textbf{Übergänge:} Nuxt bietet Vorlagen und Funktionen für fliessende Uebergaenge zwischen Seiten und Layouts. Dadurch wirkt die Webanwendung benutzerfreundlicher und moderner ohne lange Übergänge selbst ausarbeiten zu müssen.
+    
+    \item \textbf{Routing:} Das Routing wird in Nuxt automatisch auf Basis der Ordnerstruktur im Verzeichnis \texttt{app/pages/} erstellt. Dadurch müssen Routen nicht manuell definiert werden.
+
+\end{itemize}
+
+\begin{lstlisting}[caption={Automatische Route in Nuxt.js}]
+app/pages/login
+-> http://myApp/login
+\end{lstlisting}
 
 \subsection{Angular [Elias Mahr]}
 \setauthor{Elias Mahr}
