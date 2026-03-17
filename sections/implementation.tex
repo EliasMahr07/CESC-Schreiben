@@ -1,22 +1,201 @@
-\section{Systemarchitektur [Elias Mahr]}
-\setauthor{Elias Mahr}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.35]{pics/Systhemarchitektur.png}
-    \caption{Systemarchitektur}
-    \label{fig:FrontendButton}
-\end{figure}
-
-\section{Containerarchitektur [Elias Mahr]}
+\section{Containerarchitektur [Leopold Mistelberger]}
 \setauthor{Elias Mahr}
 
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.3]{pics/ContainerNew.png}
     \caption{Containerarchitektur}
-    \label{fig:FrontendButton}
+    \label{fig:Containerarchitektur}
 \end{figure}
+
+
+Die Containerarchitektur beschreibt den Aufbau und die Organisation der technischen Komponenten eines Baustellencontainers.
+
+\subsection{Zentrale Steuereinheit}
+
+Die zentrale Steuerung erfolgt über einen \textbf{Raspberry Pi}, der als Gateway für alle angeschlossenen Sensoren und Aktoren fungiert. Diese Einheit übernimmt folgende Aufgaben:
+
+\begin{itemize}
+    \item Verwaltung des \textbf{Zigbee-Dongles} über USB
+    \item Kommunikation mit der \textbf{Firebase-Datenbank}
+    \item Über eine SSH-Verbindung kann eine Remote-Verbindung hergestellt werden, um Wartungsarbeiten und Updates durchzuführen.
+\end{itemize}
+
+
+\subsection{Sensorik}
+
+Zur Erfassung der Umgebungsbedingungen im Container sind verschiedene Sensoren installiert:
+
+\begin{itemize}
+    \item \textbf{Temperatur- und Luftfeuchtigkeitssensor (innen)}: Misst kontinuierlich die klimatischen Bedingungen im Containerinneren. Über ein integriertes Display haben die Mitarbeiter jederzeit Zugriff auf diese Daten.
+    \item \textbf{Temperatur- und Luftfeuchtigkeitssensor (außen)}: Erfasst die klimatischen Bedingungen außerhalb des Containers.
+    \item \textbf{Radarsensor}: Dient zur Erkennung von Bewegungen innerhalb des Containers, um die Anwesenheit von Personen festzustellen.
+    \item \textbf{Türkontakt}: Überwacht den Öffnungszustand der Containertür, um Zutritte oder unbefugte Zugriffe zu erkennen.
+\end{itemize}
+
+Die Sensordaten werden fortlaufend über ein drahtloses Zigbee-Netzwerk an den Zigbee-Dongle übermittelt, der über USB mit dem Raspberry Pi verbunden ist. Jeder Sensor sendet ab einem bestimmten Änderungsgrad den aktuellen Messwert inklusive Zeitstempel, sodass eine exakte zeitliche Zuordnung der Messungen möglich ist.
+
+\subsection{Aktorik und Energieverbraucher}
+
+Im Container sind elektrische Verbraucher installiert, die über Zigbee-Steckdosen gesteuert werden:
+
+\begin{itemize}
+    \item \textbf{Heizung}
+    \item \textbf{Lüftung}
+    \item \textbf{Beleuchtung}
+\end{itemize}
+
+Die Steckdosen werden mithilfe des Zigbee-Protokolls gesteuert und ausgelesen. So kann beispielsweise die Heizung nur dann aktiviert werden, wenn der Container genutzt wird oder bestimmte Temperaturwerte unterschritten werden.
+
+\subsection{Kamerasystem}
+
+Für die sicherheitsrelevante Überwachung ist eine hochauflösende Kamera installiert. Bild- oder Videodaten können zur späteren Auswertung, für Alarmmeldungen oder zur Fernüberwachung genutzt werden.
+
+\subsection{Kommunikation im Container}
+
+Die drahtlose Kommunikation zwischen den Sensoren, Steckdosen und dem Raspberry Pi erfolgt über den \textbf{Zigbee-Dongle}. Das Zigbee-Netzwerk ermöglicht die bidirektionale Kommunikation und stellt sicher, dass alle Geräte im Container zuverlässig verbunden sind.
+
+\subsection{Cloud-Anbindung}
+
+Mithilfe der \textbf{Firebase-Datenbank} werden die verarbeiteten Daten an die Cloud übermittelt. Gleichzeitig können aus der Datenbank neue Regeln oder Statusänderungen ausgelesen und auf die Geräte im Container angewendet werden.
+
+
+
+\section{Systemarchitektur [Leopold Mistelberger]}
+\setauthor{Elias Mahr}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.35]{pics/Systhemarchitektur.png}
+    \caption{Systemarchitektur}
+    \label{fig:systemarchitektur}
+\end{figure}
+
+
+Die Systemarchitektur des CESC-Projekts beschreibt die logische und funktionale Organisation aller Systemkomponenten, sowohl innerhalb der Baustellencontainer als auch auf Server- und Cloud-Ebene. Ziel ist es, eine zuverlässige Erfassung, Verarbeitung, Speicherung und Visualisierung aller Sensordaten zu gewährleisten sowie die steuerbare Interaktion mit Aktoren (Heizung, Lüftung, Beleuchtung) zu ermöglichen.
+
+\subsection{Überblick über das Gesamtsystem}
+
+Abbildung~\ref{fig:systemarchitektur} zeigt die Gesamtarchitektur. Das System lässt sich in vier Hauptbereiche gliedern:
+
+\begin{enumerate}
+    \item \textbf{Container-Hardware}: Enthält Sensoren (Innen- und Außentemperatur, Luftfeuchtigkeit, Radar, Türkontakt), Aktoren (Heizung, Lüftung, Beleuchtung) und Kameras zur Sicherheitsüberwachung. Ein \textbf{Raspberry Pi} fungiert als zentrale Steuerungseinheit und Gateway.
+    
+    \item \textbf{Lokale Software-Container auf dem Raspberry Pi}: Docker-Container für Zigbee2MQTT, MQTT Broker, mqttListener.js, actionHandler.js und Home Assistant. Diese Komponenten übernehmen die lokale Datenerfassung, Vorverarbeitung, Steuerung und Kommunikation.
+    
+    \item \textbf{Cloud-Infrastruktur}: Eine Firebase-Datenbank speichert Sensordaten, Aktorenstatus und Regeln. Sie dient sowohl der langfristigen Speicherung als auch der Bereitstellung von Informationen für die Webanwendung.
+    
+    \item \textbf{Webanwendung und Server}: Angular-Frontend zur Visualisierung und Steuerung, C\#-Backend für REST-API und Business-Logik. Der Backend-Server kommuniziert mit Firebase und liefert Daten an das Frontend, während ein Nginx-Reverse-Proxy die HTTPS-Anfragen der Benutzer routet.
+\end{enumerate}
+
+\subsection{Funktionsweise des Gesamtsystems}
+
+\begin{itemize}
+    \item Sensordaten werden in Echtzeit erfasst und bei signifikanten Änderungen über Zigbee an den Raspberry Pi gesendet.
+    \item Zigbee2MQTT wandelt die Daten in MQTT-Nachrichten um und leitet sie an den lokalen MQTT-Broker weiter.
+    \item mqttListener.js abonniert die MQTT-Topics, verarbeitet die Nachrichten und speichert die Daten in Firebase.
+    \item actionHandler.js liest die Daten aus Firebase, prüft Regeln und sendet Steuerbefehle zurück an die Aktoren über den MQTT-Broker.
+    \item Das Frontend visualisiert Sensordaten, Alarmmeldungen und Aktorstatus und ermöglicht die manuelle Steuerung über REST-API-Anfragen an das Backend.
+\end{itemize}
+
+\subsection{Vorteile dieser Architektur}
+
+\begin{itemize}
+    \item \textbf{Skalierbarkeit}: Mehrere Container können unabhängig voneinander betrieben werden. Jeder Container hat seine lokale Verarbeitungseinheit.
+    \item \textbf{Modularität}: Docker-Container trennen Funktionen klar, wodurch Updates einzelner Komponenten möglich sind, ohne das Gesamtsystem zu unterbrechen.
+    \item \textbf{Zuverlässigkeit}: Lokale Verarbeitung auf dem Raspberry Pi sorgt dafür, dass Aktionen (z. B. Heizung einschalten) auch bei einem Internet Ausfall ausgeführt werden können.
+    \item \textbf{Sicherheit}: SSH-Zugriff auf den Raspberry Pi und gesicherte MQTT-Verbindungen stellen den Schutz vor unbefugtem Zugriff sicher.
+\end{itemize}
+
+
+
+
+\section{Deployment}
+
+\subsection{Build-Prozess}
+
+Der Build-Prozess beschreibt die automatisierte Erstellung von lauffähigen Softwarekomponenten in Form von Docker-Images. Ziel ist es, den Quellcode des Systems in standardisierte, ausführbare Einheiten zu überführen, die unabhängig von der Zielplattform eingesetzt werden können.
+
+Im Rahmen des CESC-Projekts wird dieser Prozess vollständig automatisiert durchgeführt. Jede Änderung am Quellcode führt dazu, dass die betroffenen Komponenten neu gebaut und bereitgestellt werden. Dadurch wird sichergestellt, dass alle Systeme stets den aktuellen Entwicklungsstand verwenden.
+
+\subsubsection{Continuous Integration mit GitHub Actions}
+
+Zur Automatisierung des Build-Prozesses wird eine Continuous-Integration-Pipeline eingesetzt. Diese wird über GitHub Actions realisiert und bei jeder Änderung im Hauptbranch (\texttt{main}) ausgelöst.
+
+Ein typischer Trigger ist:
+
+\begin{verbatim}
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'raspi/**'
+\end{verbatim}
+\label{lst:ci_trigger}
+
+Durch die Einschränkung auf bestimmte Pfade wird sichergestellt, dass nur relevante Änderungen einen Build-Prozess auslösen. Dies reduziert unnötige Builds und verbessert die Effizienz der Pipeline.
+
+\subsubsection{Ablauf des Build-Prozesses}
+
+Der Build-Prozess besteht aus mehreren aufeinanderfolgenden Schritten:
+
+\begin{enumerate}
+    \item \textbf{Code Checkout}: Der aktuelle Stand des Repositories wird geladen.
+    
+    \item \textbf{Authentifizierung}: Anmeldung bei der Container Registry, um Images speichern zu können.
+    
+    \item \textbf{Konfigurationsgenerierung}: Sensible Konfigurationsdateien werden zur Laufzeit aus sicheren Variablen (Secrets) erzeugt.
+    
+    \item \textbf{Image-Build}: Erstellung eines Docker-Images basierend auf einem Dockerfile.
+    
+    \item \textbf{Image-Push}: Hochladen des fertigen Images in die Container Registry.
+\end{enumerate}
+
+\subsubsection{Verwendung von Secrets}
+
+Sensible Daten wie Zugangsdaten oder API-Schlüssel werden nicht im Quellcode gespeichert, sondern als sogenannte Secrets in der CI/CD-Umgebung hinterlegt.
+
+Während des Build-Prozesses werden diese Daten temporär in Konfigurationsdateien geschrieben. 
+
+\begin{verbatim}
+echo '${{ secrets.RASPI_CONFIG_JSON }}' > ./raspi/config.json
+\end{verbatim}
+\label{lst:secret_example}
+
+Um sicherzustellen, dass die generierten Konfigurationsdateien gültig sind, erfolgt eine Validierung, beispielsweise mittels des Tools \texttt{jq}:
+
+\begin{verbatim}
+jq . ./raspi/config.json > /dev/null
+\end{verbatim}
+
+Nach Abschluss des Build-Prozesses werden diese Dateien wieder entfernt, um ein Sicherheitsrisiko zu vermeiden.
+
+\subsubsection{Container Registry}
+
+Die erstellten Docker-Images werden in einer zentralen Container Registry gespeichert. Diese dient als Verteilplattform für alle Systemkomponenten.
+
+Im vorliegenden System wird die GitHub Container Registry verwendet. Die Images werden mit einem eindeutigen Namen und Tag versehen, beispielsweise:
+
+\begin{verbatim}
+ghcr.io/<repository>/action-handler:latest
+\end{verbatim}
+
+Andere Systeme, wie der Raspberry Pi oder der Server, können diese Images anschließend direkt herunterladen und ausführen.
+
+\subsubsection{Vorteile des automatisierten Build-Prozesses}
+
+Der automatisierte Build-Prozess bietet mehrere Vorteile:
+
+\begin{itemize}
+    \item Konsistente und reproduzierbare Builds
+    \item Reduzierung manueller Fehler
+    \item Schnelle Bereitstellung neuer Versionen
+    \item Zentrale Verwaltung aller Softwarekomponenten
+\end{itemize}
+
+
+
+
 
 \section{Keycloak [Elias Mahr]}
 \setauthor{Elias Mahr}
