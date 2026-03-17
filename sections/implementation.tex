@@ -570,33 +570,216 @@ Ein detaillierter Verlauf kann dann noch mit dem Button ``Verlauf'' angezeigt we
 \item start-list-container
 \end{itemize}
 
-\subsubsection{Services}
-
-
-
-
-
-
-
-
-Siehe tolle Daten in Tab. \ref{tab:impl:data}.
+\section{Grafana [Elias Mahr]}
 \setauthor{Elias Mahr}
 
 
-Siehe und staune in Abb. \ref{fig:impl:knuth}.
+\section{Backend [Timon Schmalzer]}
+\setauthor{Timon Schmalzer}
 
-Dann betrachte den Code in Listing \ref{lst:impl:foo}.
+\subsection{Kalenderlogik und Betriebsentscheidung}
 
-\begin{table}[b]
-    \centering
-    \begin{tabular}{|lcc|}
-    \hline
-              & \textbf{Regular Customers} & \textbf{Random Customers} \\ \hline
-    Age       & 20-40                      & \textgreater{}60          \\ \hline
-    Education & university                 & high school               \\ \hline
-    \end{tabular}
-    \caption{Ein paar tabellarische Daten}
-    \label{tab:impl:data}
-\end{table}
+Ein zentraler Teil der Backend-Implementierung ist die Entscheidung, ob ein Container zu einem bestimmten Zeitpunkt betrieben werden soll. Diese Entscheidung wird im Endpunkt \texttt{/api/calendar/should-operate/\{containerId\}} berechnet und berücksichtigt sowohl Standardregeln als auch containerabhängige Ausnahmen.
+
+Der Ablauf erfolgt in mehreren Schritten:
+
+\begin{itemize}
+    \item Zuerst wird der angeforderte Container geladen und auf Gültigkeit geprüft.
+    \item Danach wird geprüft, ob für diesen Container eine individuelle Kalenderregel vorhanden ist.
+    \item Falls keine individuelle Regel existiert, wird auf eine Standardregel nach Bundesland zurückgegriffen.
+    \item Anschließend werden Feiertage geladen und mit den aktiven Arbeitszeiten kombiniert.
+    \item Abschließend wird mit der Kalenderlogik der boolesche Wert \texttt{shouldOperate} berechnet und als API-Antwort zurückgegeben.
+\end{itemize}
+
+Diese Vorgehensweise hat den Vorteil, dass kundenspezifische Sonderfälle direkt abbildbar sind, ohne den allgemeinen Standardbetrieb zu verlieren.
+
+\subsubsection{Implementierter Ablauf im Controller}
+
+Die folgende Implementierung zeigt den Kern der Entscheidungskette im \texttt{CalendarController}. Zuerst wird auf eine individuelle Regel geprüft. Ist keine vorhanden, erfolgt automatisch der Fallback auf den jeweiligen Standardkalender:
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Fallback von individuellem auf Standardkalender,
+    label=lst:backend:calendar:fallback,
+    basicstyle=\ttfamily\small
+]
+var container = await _containerRepository.GetContainersWithFullDataAsync();
+var c = container.FirstOrDefault(x => x.ContainerId == containerId);
+if (c == null)
+    return NotFound("Container nicht gefunden");
+
+CalendarRule? rule = null;
+string calendarType = "";
+var customRule = await new CalendarRepository(_firestoreDb).GetByIdAsync(containerId.ToString());
+if (customRule != null && customRule.Workdays != null && customRule.Workdays.Count > 0)
+{
+    rule = customRule;
+    calendarType = "custom";
+}
+else
+{
+    calendarType = c.State.Trim().ToLower() == "upper_austria" ? "standard_5days" : "standard_4days";
+    rule = await _calendarService.GetRuleForLocationAsync(calendarType);
+    if (rule == null)
+        return NotFound($"Keine Regel fuer Kalender-Typ '{calendarType}' gefunden");
+}
+\end{lstlisting}
+
+Nach dem Laden der Regel werden Feiertage ergänzt und anschließend die eigentliche Betriebsentscheidung berechnet. Die Antwort enthält neben dem Ergebnis auch den verwendeten Kalendertyp und weitere Kontextdaten für das Frontend.
+
+\subsubsection{Registrierung der Backend-Komponenten}
+
+Damit der Endpunkt stabil funktioniert, werden die benötigten Komponenten im Backend zentral registriert. Besonders wichtig sind dabei die Repositories, der \texttt{CalendarService} sowie die HTTP-Client-Registrierung für externe Feiertagsabfragen.
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Service-Registrierung im Backend,
+    label=lst:backend:di:registration,
+    basicstyle=\ttfamily\small
+]
+builder.Services.AddScoped<IContainerRepository, ContainerRepository>();
+builder.Services.AddScoped<ContainerRepository>();
+builder.Services.AddScoped<LatestSensorDataRepository>();
+builder.Services.AddScoped<PlugActionRepository>();
+builder.Services.AddScoped<CalendarRepository>();
+builder.Services.AddScoped<PlugRepository>();
+builder.Services.AddHttpClient<CalendarService>();
+\end{lstlisting}
+
+Durch diese Trennung bleibt die Implementierung wartbar: Controller kümmern sich um den API-Fluss, Services um Fachlogik und Repositories um den Zugriff auf gespeicherte Daten.
+
+\subsubsection{Nutzen für das Gesamtsystem}
+
+Die umgesetzte Kalenderlogik ist für CESC besonders relevant, da sich der reale Betrieb der Container nicht nur nach Uhrzeit, sondern auch nach Sonderfällen wie Betriebsurlaub und Feiertagen richtet. Durch die implementierte Fallback-Strategie bleibt das System auch dann funktionsfähig, wenn für einzelne Container keine individuelle Konfiguration hinterlegt ist.
+
+Zusätzlich kann das Frontend mit der Antwortstruktur sofort arbeiten, da alle für die Anzeige und Steuerung nötigen Informationen in einer Antwort zusammengeführt werden.
+
+
+\subsection{Container- und Sensorendpunkte}
+
+Neben der Kalenderlogik besteht ein wesentlicher Teil des Backends aus Endpunkten zum Abrufen von Container- und Sensordaten. Diese Endpunkte versorgen das Frontend mit den aktuellen Zuständen und den Verlaufsdaten, die in den Dashboards angezeigt werden.
+
+\subsubsection{Containerdaten als Einstiegspunkt}
+
+Die Containerdaten werden im \texttt{ContainersController} bereitgestellt. Dabei gibt es einen Endpunkt für alle Container und einen Endpunkt für einen einzelnen Container.
+
+Die Implementierung ist bewusst als Lesezugriff ausgelegt. Schreiboperationen auf Container wurden nicht freigegeben, da in CESC die Anzeige und Steuerlogik im Vordergrund steht und Containerstammdaten nicht laufend durch Benutzer bearbeitet werden müssen.
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Container-Endpunkte im Backend,
+    label=lst:backend:containers:endpoints,
+    basicstyle=\ttfamily\small
+]
+[HttpGet]
+public async Task<ActionResult<IEnumerable<Container>>> GetContainers()
+{
+    return Ok(await _containerRepository.GetContainersWithFullDataAsync());
+}
+
+[HttpGet("{id}")]
+public async Task<ActionResult<Container>> GetContainer(string id)
+{
+    string formattedId = id;
+    if (int.TryParse(id, out int containerId))
+    {
+        formattedId = $"container_{containerId}";
+    }
+
+    var container = await _containerRepository.GetContainerWithFullDataAsync(formattedId);
+    if (container == null)
+    {
+        return NotFound();
+    }
+    return Ok(container);
+}
+\end{lstlisting}
+
+Die ID-Formatierung ist hier wichtig, da das Frontend mit numerischen IDs arbeiten kann, während intern mit dem Format \texttt{container\_X} gearbeitet wird.
+
+\subsubsection{Zusammenführung der Sensorsignale}
+
+Im \texttt{SensorsController} werden verschiedene Sensortypen aus der Datenbasis geladen und in ein gemeinsames DTO übersetzt. Dadurch erhält das Frontend eine einheitliche Struktur, obwohl die Rohdaten aus unterschiedlichen Sensorquellen stammen.
+
+Die Zuordnung erfolgt über \texttt{sensorType} und \texttt{sensorId}. Je nach Typ wird der entsprechende Teil des Antwortobjekts gesetzt, zum Beispiel für Temperatur, Türkontakt, Bewegungsmelder oder Steckdosenstatus.
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Zuordnung von Sensordaten in ein gemeinsames DTO,
+    label=lst:backend:sensors:mapping,
+    basicstyle=\ttfamily\small
+]
+if (sensorType == "th-inside" || sensorId.Contains("th_inside"))
+{
+    var tempSensor = sensor as TemperatureHumiditySensor;
+    if (tempSensor != null)
+    {
+        result.InsideSensor = new TemperatureHumiditySensorDTO
+        {
+            Battery = tempSensor.Battery ?? 0,
+            LastHumidity = tempSensor.LastHumidity,
+            LastTemp = tempSensor.LastTemp
+        };
+    }
+}
+else if (sensorType == "th-outside" || sensorId.Contains("th_outside"))
+{
+    var tempSensor = sensor as TemperatureHumiditySensor;
+    if (tempSensor != null)
+    {
+        result.OutsideSensor = new TemperatureHumiditySensorDTO
+        {
+            Battery = tempSensor.Battery ?? 0,
+            LastHumidity = tempSensor.LastHumidity,
+            LastTemp = tempSensor.LastTemp
+        };
+    }
+}
+\end{lstlisting}
+
+Dieses Mapping reduziert Komplexität im Frontend deutlich, weil dort nicht mehr jedes Sensorschema einzeln behandelt werden muss.
+
+\subsubsection{Verlaufsdaten für Analysefunktionen}
+
+Für Diagramme und Rückblicke stellt das Backend eigene History-Endpunkte bereit, zum Beispiel für Temperatur, Plug-Zustände, Bewegung und Türkontakte. Die API arbeitet dabei mit einem \texttt{days}-Parameter, über den der Zeitraum dynamisch gesetzt wird.
+
+Vor der eigentlichen Datenabfrage werden die Parameter validiert, damit nur gültige Typen verarbeitet werden. Ungültige Werte werden mit \texttt{BadRequest} abgewiesen.
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Parameterprüfung im History-Endpunkt,
+    label=lst:backend:sensors:validation,
+    basicstyle=\ttfamily\small
+]
+[HttpGet("history/plugs/{containerId}/{plugType}")]
+public async Task<ActionResult> GetPlugDeviceHistory(
+    int containerId,
+    string plugType,
+    [FromQuery] int days = 7)
+{
+    var validTypes = new[] { "light", "heating", "cooling" };
+    if (!validTypes.Contains(plugType.ToLower()))
+    {
+        return BadRequest("plugType must be 'light', 'heating', or 'cooling'");
+    }
+
+    var result = await _sensorRepository.GetPlugDeviceHistory(containerId, days);
+    if (result == null)
+    {
+        return NotFound($"No plug device data found for container {containerId}");
+    }
+
+    return Ok(result);
+}
+\end{lstlisting}
+
+Diese Trennung in aktuelle Werte und Verlaufsdaten ist für CESC besonders sinnvoll: Die Übersicht im Dashboard braucht schnelle Live-Werte, während die Analysefunktionen gezielt historische Daten über einen definierten Zeitraum benötigen.
+
+\subsubsection{Nutzen für den Betrieb}
+
+Durch die klare Aufteilung der Endpunkte ist das Backend sowohl für Echtzeitansichten als auch für Auswertungen geeignet. Gleichzeitig bleibt die Schnittstelle nachvollziehbar, da jede Endpunktgruppe einen klar abgegrenzten Zweck hat.
+
+Für die Firma bedeutet das in der Praxis, dass sowohl der aktuelle Zustand eines Containers als auch dessen Verlauf jederzeit kontrolliert werden kann. Damit wird die technische Grundlage für eine verlässliche Überwachung und spätere Optimierungen im Energieverbrauch geschaffen.
+
 
 
