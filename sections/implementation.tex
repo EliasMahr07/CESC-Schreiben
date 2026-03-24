@@ -390,6 +390,20 @@ Da das Projekt nicht nur am Desktop, sondern auch auf mobilen Devices zum Einsat
 \setauthor{Elias Mahr}
 
 \subsection{Components}
+
+Komponenten sind in Angular die Grundlage der Webseite. Sie dienen zur einfachen und übersichtlichen Strukturierung der Anwendung. Durch klare Code Trennungen ist alles übersichtlich und bei späteren Verbesserungen/Änderungen leichter zu Warten.
+Eine Anwendung wird nicht in einem einzigen html File erstellt sondern klar in mehrere kleinere Elemente,bestehend aus eigenen html, css, und typescript Files, unterteilt. Diese kombiniert ergeben dann erst das große ganze, somit wird auf der einen Seite die Architektur so Sauber wie möglich gehalten und auf der anderen Seite die Wartung so einfach wie möglich vorbereitet.
+
+
+\subsubsection{Komponenten Baum}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.12]{pics/ComponentTree.png}
+    \caption{Component Tree}
+    \label{fig:ComponentTree}
+\end{figure}
+
 \subsubsection{start-list-container}
 
 \begin{figure}[H]
@@ -569,6 +583,60 @@ Ein detaillierter Verlauf kann dann noch mit dem Button ``Verlauf'' angezeigt we
 \item plotly-chart
 \item start-list-container
 \end{itemize}
+
+\subsection{Dependency Injection}
+Um die Logik in allen Komponenten nicht immer wieder neu Laden zu müssen benutzt Angular das design Pattern der Dependency Injection.
+Man erstellt einen Service und kann dann von allen Codeabschnitten, auf die dort definierten Methoden zugreifen. Dies bietet einige Vorteile.
+\begin{itemize}
+    \item \textbf{Wartbarkeit} Man vermeidet doppelten Code und kann so ganze Datenabfragen mit nur ein paar Zeilen über die gesamte App und in jeder Komponente ändern.
+    \item \textbf{Anpassungsfähigkeit} In jeder neuen Komponente die erstellt wird kann sofort, exakt die selbe Logik verwendet werden wie in dem bestehenden Code.
+\end{itemize}
+
+\subsubsection{Calendar}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.06]{pics/CalenderService.png}
+    \caption{Calender Service}
+    \label{fig:CalenderService}
+\end{figure}
+
+Der Calendar Service ist die zentrale Schnittstelle für alle Aufrufe ans Backend die den Kalender behandeln. Er stellt den Komponenten ein API fürs Lesen speichern, löschen und aktualisieren von den Kalenderdaten bereit.
+Konkret lädt er den individuelle Kalender eines jeden Containers über einen Get Aufruf und gibt so die jeweiligen Arbeitszeiten eines jeden Containers vor. Änderungen daran kann man über den selben Endpunkt posten und über einen delete Löschen.
+\begin{itemize}
+\item \textbf{get:} https://localhost:53488/api/calendar/{containerId}
+\item \textbf{post:} https://localhost:53488/api/calendar/{containerId}, data
+\item \textbf{delete} https://localhost:53488/api/calendar/{containerId}
+\end{itemize}
+Über einen eigenen Endpunkt kann man die Arbeitszeiten eines Gewissen Containers mit dessen Id abrufen.  
+Als letztes wird noch ein Patch Aufruf bereitgestellt um die Betriebsurlaube zu managen.
+\begin{itemize}
+\item \textbf{get:} https://localhost:53488/api/Calendar/should-operate/{containerId}
+\item \textbf{patch:} https://localhost:53488/api/Calendar/vacations`, { summer, winter }
+\end{itemize}
+
+\subsubsection{Container}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.08]{pics/ContainerService.png}
+    \caption{Container Service}
+    \label{fig:ContainerService}
+\end{figure}
+Der Container Service ist Primär zuständig einen Endpunkt zum Laden der ganzen Elemente der start-list-component bereit zu stellen. 
+\begin{itemize}
+\item \textbf{get:} https://localhost:53488/api/Containers
+\end{itemize}
+Per HTTP-GET bekommt man alle Container und deren Daten. Der Aufruf wird, bei Fehlern, bis zu drei Mal erneut und protokolliert Fehler. Dadurch bleibt die Ladefunktion in der Startansicht stabil.
+
+
+\subsubsection{Keycloak-auth}
+\subsubsection{Plug-controll}
+\subsubsection{Sensor-adapter}
+
+\subsection{Guards}
+
+
+
 
 \section{Grafana [Elias Mahr]}
 \setauthor{Elias Mahr}
