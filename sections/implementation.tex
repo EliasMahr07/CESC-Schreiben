@@ -385,15 +385,19 @@ Die Ports werden pfadbasiert weitergeleitet:
 
 
 
-\section{Angular}
+\section{Frontend: Angular}
 Da das Projekt nicht nur am Desktop, sondern auch auf mobilen Devices zum Einsatz kommen soll, wurde die gesamte Applikation in einem responsive Design entwickelt. 
 \setauthor{Elias Mahr}
 
 \subsection{Components}
 
 Komponenten sind in Angular die Grundlage der Webseite. Sie dienen zur einfachen und übersichtlichen Strukturierung der Anwendung. Durch klare Code Trennungen ist alles übersichtlich und bei späteren Verbesserungen/Änderungen leichter zu Warten.
-Eine Anwendung wird nicht in einem einzigen html File erstellt sondern klar in mehrere kleinere Elemente,bestehend aus eigenen html, css, und typescript Files, unterteilt. Diese kombiniert ergeben dann erst das große ganze, somit wird auf der einen Seite die Architektur so Sauber wie möglich gehalten und auf der anderen Seite die Wartung so einfach wie möglich vorbereitet.
-
+Eine Anwendung wird nicht in einem einzigen html File erstellt sondern klar in mehrere kleinere Elemente, bestehend aus eigenen html, css, und typescript Files, unterteilt. Diese kombiniert ergeben dann erst das große ganze, somit wird auf der einen Seite die Architektur so Sauber wie möglich gehalten und auf der anderen Seite die Wartung so einfach wie möglich vorbereitet.
+Um so eine Komponente zu erstellen kann man ganz einfach die Angular CLI benutzen. Mit dem Befehl
+\begin{lstlisting}[language=bash, caption={erstellen einer Komponente in der Angular CLI}]
+ng generate component NAME
+\end{lstlisting}
+werden alle benötigten Files erstellt.
 
 \subsubsection{Komponenten Baum}
 
@@ -536,7 +540,7 @@ Um dies zu erleichtern wird beim Eingeben eines neuen Datums sofort ein kleiner 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.15]{pics/dashboard.png}
+    \includegraphics[scale=0.18]{pics/dashboard.png}
     \caption{Dashboard}
     \label{fig:Dashboard}
 \end{figure}
@@ -550,6 +554,60 @@ kann ein weiterer Abschnitt jederzeit leicht hinzugefügt werden, ohne Rücksich
 Ganz oben in der Componente sieht man die Überschrift mit dem Namen des Containers. Der erste Abschnitt ist eine übersichtliche Temperaturanzeige von Innen- und Außensensor.
 Fettgedruckt ist die Temperatur, da das die wichtigste Anzeige im Container ist. Gleich darunter steht etwas kleiner die Luftfeuchtigkeit und abschließend noch die Anzeige der übrigen Batterie, um rechtzeitig zu erkennen, wann die Batterien gewechselt werden sollten.
 Ein detaillierter Verlauf kann dann noch mit dem Button ``Verlauf'' angezeigt werden. Dazu aber dann in dieser Componente mehr.
+
+Darunter befinden sich der Anwesenheitsstatus und der Tür Status. Diese sind durch Icons sofort ersichtlich. 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.3\textwidth]{pics/AnwesenheitTrue.png}
+        \caption{Anwesenheit True}
+        \label{fig:anwesenheitTrue}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.29\textwidth]{pics/AnwesenheitFalse.png}
+        \caption{Anwesenheit False}
+        \label{fig:anwesenheitFalse}
+    \end{subfigure}
+    \caption{Icons Anwesenheit}
+    \label{fig:anwesenheitIcons}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.3\textwidth]{pics/DoorTrue.png}
+        \caption{Tür zu}
+        \label{fig:doorOpen}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.29\textwidth]{pics/DoorFalse.png}
+        \caption{Tür offen}
+        \label{fig:door Close}
+    \end{subfigure}
+    \caption{Unterschied der Urlaube}
+    \label{fig:door Icons}
+\end{figure}
+
+
+In der Mitte kommt man zum Button "Tür logs anzeigen". Dieser navigiert zur door-logs Komponente mit den jeweiligen Daten zum Cointainer.
+
+Im Elemente Steuerung gibt es 3 Unterteilungen in "Beleuchtung", "Heizung" und "Kühlung". Durch einen klick auf den Toggle kann dann im Container der jeweilige Plug ein/aus geschaltet werden.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.27]{pics/Steuerung.png}
+    \caption{Steuerung}
+    \label{fig:steuerung}
+\end{figure}
+
+Das Ende der Komponente ist der "Kalender bearbeiten" Button. Dieser ist bei fehlender Autorisierung disabled. Nach erfolgreicher Anmeldung kann hier zur calendar-component navigiert werden.
 
 \subsubsection{door-logs}
 
@@ -570,19 +628,33 @@ Ein detaillierter Verlauf kann dann noch mit dem Button ``Verlauf'' angezeigt we
     \label{fig:doorLogs}
 \end{figure}
 
+Ein Wesentlicher Bestandteil unserer Arbeit ist es die Sicherheit gegen Einbrüche in die Container zu verbessern.
+Da unsere erste Überlegung mit der Kamera, Datenschutztechnisch sehr schwierig umzusetzen ist und sich in einer Rechtlichen Grauzone befindet wurde eine andere Lösung gesucht.
+Nach Gesprächen mit der Firma wurde das Konzept der door-logs Komponente entwickelt.
+Die Komponente zeigt die Historie aller Türöffnungen des Containers auf.
+Um unerlaubtes eindringen außerhalb der Arbeitszeit nachvollziehen zu können sind in dieser Komponente im nachhinein alle Öffnungen aufgezeigt.
+
+
+Aufgebaut ist sie in drei Abschnitte.
+Einmal die Überschrift Tür-Logs ganz oben auf der Seite.
+Als zweites ein Menüband um mögliches filtern zu ermöglichen. Es kann eine Zeitraum Filterung und eine Filterung auf nur jene Öffnungen außerhalb der Arbeitszeit angewendet werden. Bei der Zeitraum Filterung sind standartmäßig die letzten sieben Tage eingestellt.
+In einem Dropdown werden die Möglichkeiten "letzter Monat" und "alle Daten" noch aufgezeigt. Das Dropdown kann jedoch jederzeit auf andere Zeiträume erweitert werden da der genutzte Endpunkt beliebig viele Tage zurückgeben kann.
+Sollte die Checkbox "Nur außerhalb der Arbeitszeiten" werden nur Türöffnungen außerhalb der Arbeitszeiten angezeigt, der Filter des Zeitraums wird hierbei auch berücksichtigt.
+
+Der Letzte Abschnitt ist die Liste. Zum schnellen Erkennung von unrechtmäßigen eindringen außerhalb der Arbeitszeit werden solche Öffnungen Rot hervorgehoben. Angezeigt wird für jeden Öffnung das Datum, die Zeit wann die Türe geöffnet wurde und zu welcher Zeit sie wieder geschlossen wurde.
+Am Fuße der Liste finden sich noch zwei Buttons. der gelbe Button "Zurück" ist lediglich dazu da wieder zur Dashboard Komponente zu navigieren. Der Button "Als PDF exportieren" erstellt eine Pdf Datei die sofort gedownloadet werden kann.
+Zur Erstellung der Pdf wird eine fertige JavaScript-Bibliothek JsPdf genutzt. Diese Bibliothek erstellt direkt im Browser eine Pdf, dies hat den Vorteil das kein Backend benötigt wird.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.7]{pics/examplePdf.png}
+    \caption{Door Logs Pdf example}
+    \label{fig:LogsPdf}
+\end{figure}
+
 \subsubsection{plotly-chart}
 
-
-
-
-\begin{itemize}
-\item can- und Logout-Buttonslender-editor
-\item dashboard
-\item door-logs
-\item kalender
-\item plotly-chart
-\item start-list-container
-\end{itemize}
+\subsubsection{calendar-editor}
 
 \subsection{Dependency Injection}
 Um die Logik in allen Komponenten nicht immer wieder neu Laden zu müssen benutzt Angular das design Pattern der Dependency Injection.
@@ -591,6 +663,11 @@ Man erstellt einen Service und kann dann von allen Codeabschnitten, auf die dort
     \item \textbf{Wartbarkeit} Man vermeidet doppelten Code und kann so ganze Datenabfragen mit nur ein paar Zeilen über die gesamte App und in jeder Komponente ändern.
     \item \textbf{Anpassungsfähigkeit} In jeder neuen Komponente die erstellt wird kann sofort, exakt die selbe Logik verwendet werden wie in dem bestehenden Code.
 \end{itemize}
+Das erstellen eines solchen Services funktioniert ganz einfach in der Angular CLI.
+\begin{lstlisting}[language=bash, caption={erstellen eines Services in der Angular CLI}]
+ng generate service NAME
+\end{lstlisting}
+Daraufhin werden alle benötigten Files automatisch erstellt und man kann sofort anfangen zu implementieren.
 
 \subsubsection{Calendar}
 
@@ -622,7 +699,7 @@ Als letztes wird noch ein Patch Aufruf bereitgestellt um die Betriebsurlaube zu 
     \caption{Container Service}
     \label{fig:ContainerService}
 \end{figure}
-Der Container Service ist Primär zuständig einen Endpunkt zum Laden der ganzen Elemente der start-list-component bereit zu stellen. 
+Der Container Service ist Primär zuständig einen Endpunkt zum Laden der ganzen Elemente der start-list Komponente bereit zu stellen. 
 \begin{itemize}
 \item \textbf{get:} https://localhost:53488/api/Containers
 \end{itemize}
@@ -630,11 +707,85 @@ Per HTTP-GET bekommt man alle Container und deren Daten. Der Aufruf wird, bei Fe
 
 
 \subsubsection{Keycloak-auth}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.085]{pics/KecloakService.png}
+    \caption{Keycloak Service}
+    \label{fig:KeycloakService}
+\end{figure}
+Der KeycloakAuthService regelt die ganze Benutzerauthentifizierung über Keycloak. 
+Um die Oberfläche dynamisch anpassen zu können gibt es zwei Streams die von der UI subscribed werden. Einmal für den Authentifizierungsstatus und einmal für das Management der Rollen.
+\begin{itemize}
+\item \textbf{isAuthenticated:} this.isAuthenticatedSubject.asObservable();
+\item \textbf{userRoles:} this.userRolesSubject.asObservable();
+\end{itemize}
+Der Service regelt unter anderem den Login indem er zur Keycloak Login Page umleitet und danach automatisch zur ursprünglichen Route zurück.
+Beim Logout werden beide Subjects, isAuthenticatedSubject und userRolesSubject gelöscht.
+
+
 \subsubsection{Plug-controll}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.09]{pics/PlugControllService.png}
+    \caption{PlugControl Service}
+    \label{fig:PlugControlService}
+\end{figure}
+In der Frontend Architektur übernimmt der plug-controll-service die Steuerung aller Aktoren. Genauer gesagt Licht, Heizung und Kühlung. 
+Ein Post mit containerId und plugType wird an den Endpunkt geschickt. Da alle Typen direkt in einem Endpunkt geregelt sind wäre eine Zukünftige Erweiterung, für zum Beispiel ein zweites Licht, sehr einfach.
+Der Request gibt nur zurüpck ob es funktioniert hat oder nicht(boolean:true|false). Beim einem Fehlgeschlagenen versuch wird der Fehler direkt geloggt. Dadurch wird ein möglicher Fall, wie das ausstecken eines Controllers, sauber abgefangen ohne Probleme zu verursachen.
+Im Gegensatz zu den anderen Services ist der PlugControllService ein reiner schreib-Service, er kann keine Daten lesen.
+\begin{itemize}
+\item \textbf{post:} https://localhost:53488/api/PlugControl
+\end{itemize}
 \subsubsection{Sensor-adapter}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.08]{pics/SensorAdapterService.png}
+    \caption{SensorAdapterService Service}
+    \label{fig:SensorAdapterService}
+\end{figure}
+Als letzter Service ist der sensor-adapter Service dazu zuständig mit dem plug-controll die ganze Sensor Logik zu vervollständigen. Der Service versorgt das Dashboard mit den aktuellen und historischen Containerdaten wie Temperatur, Steckdosenstatus und Anwesenheitsdaten. 
+Alle Daten werden mithilfe eines FirastoreListeners immer live geladen. Eine Änderung in der Datenbank wird sofort erkannt und alle Daten auf der Webseite werden neu geladen. Diese live Updates können aber über zwei Methoden:startLiveUpdates und stopLiveUpdates, ein und ausgeschaltet werden.
+\begin{itemize}
+\item \textbf{get:} https://localhost:53488/api/Sensors/container/{containerId}
+\end{itemize}
+Wie vorher gesagt bietet der Service nicht nur live Daten sondern auch einige Endpunkte um historische Daten für Diagramme zu Laden. Dazu gehören der Temperaturverlauf und der Türkontaktverlauf.  
+\begin{itemize}
+\item \textbf{get:} https://localhost:53488/api/Sensors/history/temperature/{containerId}/{sensorLocation}?days={days}
+\item \textbf{get:} https://localhost:53488/api/Sensors/history/plugs/{containerId}/{plugType}?days={days}
+\item \textbf{get:} https://localhost:53488/api/Sensors/history/appearance/{containerId}?days={days}
+\item \textbf{get:} https://localhost:53488/api/Sensors/history/door/{containerId}?days={days}
+\item \textbf{get:} https://localhost:53488/api/Sensors/history/door/{containerId}?days={days}
+\end{itemize}
 
 \subsection{Guards}
+In Angular wird die Zugriffs Kontrolle auf Routen über Guards geregelt. Guards kontrollieren ob User bestimmte Routen aufrufen oder aber auch verlassen dürfen. Sie kontrollieren die Navigation des User, so das dieser ohne die erforderlichen Rechte nicht auf geschützte Routen kommt. Guards bestehen aus einer einer einzigen Typescript Datei, diese kann einfach, in der Angular CLI, mit dem Befehl 
+\begin{lstlisting}[language=bash, caption={erstellen eines Guards in der Angular CLI}]
+ng generate guard NAME
+\end{lstlisting}
+erstellt werden. 
 
+\subsubsection{authGuard}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.058]{pics/AblaufAuthGuard.png}
+    \caption{Ablauf der Routensicherung im AuthGuard}
+    \label{fig:AblaufRoutenSicherung}
+\end{figure}
+
+Der erste implimentierte Guard ist der authGuard. Dieser regelt die Zugriffskontrolle auf alle Routen im Frontend. Bevor man auf eine neue Route wechselt wird im Controller geprüft ob der User das nötige, gültige, Token hat. Sollte dies nicht der Fall sein wird der User zur Anmeldung aufgefordert.
+Sollte ein Fehler bei der Anmeldung passieren(zum Beispiel Falsches Passwort) wir zurück zur Startseite navigiert. Somit wird versichert das wirklich nur Geschütze Funktionen nach erfolgreicher Anmeldung bedient werden können.
+
+\subsubsection{adminGuard}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.09]{pics/AdminGuardAblauf.png}
+    \caption{Ablauf der Rollenprüfung im AdminGuard}
+    \label{fig:AblaufRollenPrüfung}
+\end{figure}
+
+Der adminGuard ist eine eine Erweiterung zum authGuard. Bei den aktuellen Funktionsweisen hat er noch keine richtige Aufgabe und ist nur für mögliche zukünftige Erweiterungen der Firma da.
+Im Guard wird auf die Rolle des angemeldeten Users geprüft. Zurzeit gibt es nur die rolle Admin. Sollte es jedoch in Zukunft eine Rolle für Mitarbeiter oder Kunden geben würde man die Autorisierung im AdminGuard leicht erweitern können auch ohne sich davor spezifisches Wissen aneignen zu müssen.
 
 
 
