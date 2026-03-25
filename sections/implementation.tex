@@ -194,7 +194,8 @@ Der automatisierte Build-Prozess bietet mehrere Vorteile:
 \end{itemize}
 
 
-
+\section{Server- und Infrastrukturtechnologien [Elias Mahr]}
+\setauthor{Elias Mahr}
 
 
 \section{Keycloak [Elias Mahr]}
@@ -344,50 +345,46 @@ Der Zurzeit einzige User \texttt{herbsthofer} erhält durch die Zuweisung der ad
 \end{lstlisting}
 Für unsere Anwendung werden nur zwei Clients benötigt. Der \texttt{cesc-frontend} Client ist der öffentliche Client (\texttt{publicClient: true}) für die Angular Anwendung. Die \texttt{redirectUris} und \texttt{webOrigins} legen die erlaubten URLs für die Produktion (192.168.20.202) und die lokale Entwicklung (localhost:4200) fest. Der \texttt{cesc-backend} Client ist als vertraulicher Client gemacht, da er keine Login Page bereitstellt.(\texttt{publicClient: false}).
 
-\section{Reverse Proxy [Elias Mahr]}
+\section{Frontend: Angular}
 \setauthor{Elias Mahr}
 
-Nginx ist als eigener Docker Container mit nginx.conf implimentiert. Nur der Port 443 ist öffentlich mit Let's Encrypt-Zertifikaten.
-Die Ports werden pfadbasiert weitergeleitet:
+Für die Implementierung des Frontends wurde Angular als Framework gewählt. Ausschlaggebend war insbesondere die klare, komponentenbasierte Architektur. Da das Projekt mehrere fachlich unterschiedliche Bereiche umfasst, wie Dashboard, Kalenderlogik, Authentifizierung, Steuerfunktionen und Protokolle, war eine strukturierende Technologie mit klaren Unterteilungen besonders wichtig.
+
+Angular bietet hierfür eine gut Voraussetzung mit integrierten Mechanismen für Routing, Dependency Injection und reaktive Datenverarbeitung. Dadurch konnten wiederkehrende Aufgaben einheitlich umgesetzt und Schnittstellen zwischen Komponenten, Services und Backend sauber definiert werden. Im Vergleich zu leichter gewichtigen Ansätzen ist Angular in der Entwicklung aufwändiger, jedoch hinsichtlich auf die Größe des Projektes betrachtet notwendig. Die Firma wollte eine Software auf Unternehmensstandart und für diese ist Angular die richtige Wahl.
+
+\subsection{Designsysthem}
+Im Rahmen des UI-Designsystems wurde eine konsistente Farbpalette global im Projekt definiert, um Funktion, Zustand und Priorität von Angezeigtem eindeutig zu kommunizieren. Ziel war nicht nur eine einheitliche visuelle Gestaltung, sondern vor allem eine schnelle Erfassbarkeit relevanter Zustände im laufenden Betrieb. Die Farbauswahl orientiert sich daher am Ampelsystem: positives (z. B. aktiv, erfolgreich) werden in grünen Tönen dargestellt, Warn- und Zwischenzustände in gelb/orange und kritische Zustände (z. B. Fehler, deaktiviert, nicht verfügbar) in rot bzw. grauen Tönen.
+
+Dieses Farbschema wird komponentenübergreifend angewendet, etwa bei Türstatus, Plugzuständen sowie Fehlermeldungen. Dadurch entsteht ein konsistentes Erscheinungsbild mit hohem Wiedererkennungswert. 
+
+\definecolor{tmp1}{HTML}{4CAF50}
+\definecolor{tmp2}{HTML}{FF6B35}
+\definecolor{tmp3}{HTML}{dc3545}
 
 \begin{itemize}
-\item \underline{http://Keycloak:8080 $\to$ location /auth}
-\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /auth, label=lst:nginx:/auth]
-        location /auth {
-            proxy_pass http://keycloak:8080;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto https;
-            proxy_set_header X-Forwarded-Host $host;
-            proxy_set_header X-Forwarded-Port 443;
-            proxy_buffer_size 128k;
-            proxy_buffers 4 256k;
-            proxy_busy_buffers_size 256k;
-        }
-\end{lstlisting}
-
-
-
-\item \underline{http://frontend:80 $\to$ location/}
-\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /, label=lst:nginx:/]
-        location / {
-            proxy_pass http://frontend:80;
-        }
-\end{lstlisting}
-\item \underline{http://backend:5000 $\to$ location /api}
-\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /api, label=lst:nginx:/api]
-        location /api {
-            proxy_pass http://backend:5000;
-        }
-\end{lstlisting}
+\item \textcolor{tmp1}{Success}
+\item \textcolor{tmp2}{Warning}
+\item \textcolor{tmp3}{Error}
 \end{itemize}
 
+Neben den Zustandsfarben wurden auch Grundfarben für Hintergründe und Container festgelegt, um Lesbarkeit und Kontrast sicherzustellen. Diese Farben Orientieren sich an den Grundfarben der Firma. Das Ergebnis ist ein Designsystem, das sowohl ästhetisch als auch funktional begründet ist und damit die user experience im Dashboard nachhaltig verbessert.
 
+\definecolor{HerbsthoferYellow}{HTML}{F0E620}
+\definecolor{HerbsthoferBlack}{HTML}{000000}
+\definecolor{HerbsthoferLightGray}{HTML}{E8E8E8}
 
-\section{Frontend: Angular}
-Da das Projekt nicht nur am Desktop, sondern auch auf mobilen Devices zum Einsatz kommen soll, wurde die gesamte Applikation in einem responsive Design entwickelt. 
-\setauthor{Elias Mahr}
+\begin{itemize}
+\item \textcolor{HerbsthoferBlack}{Herbsthofer Schwarz}
+\item \textcolor{HerbsthoferLightGray}{Herbsthofer Grau}
+\item \textcolor{HerbsthoferYellow}{Herbsthofer Gelb}
+\end{itemize}
+
+\subsection{Signals}
+Angular Signals wurden in unserem Frontend zur lokalen UI-Zustandsverwaltung eingesetzt. Ein Signal ist dabei ein typsicherer Zustand, der bei Änderung automatisch die betroffenen Bereiche aktualisiert. Im Unterschied zu klassischen, manuell verwalteten Variablen reduziert dieses Konzept den Synchronisationsaufwand zwischen Logik und UI und verbessert die Nachvollziehbarkeit von Zustandsänderungen.
+
+Im Projekt werden Signals insbesondere in der Dashboard-Komponente verwendet, unter anderem um Zustände der laufenden Steckdosen-Schaltvorgänge je Plug-Typ zu verwaltet, wodurch Buttons und Statusanzeigen direkt auf Aktionen reagieren können. Des Weiteren werden in der Dashboard-Komponente zum Anzeigen der vielen anderen Sensor Daten immer Signals verwendet. Zusätzlich werden Signals in der Startlisten-Komponente genutzt, um die aktuell gewählte Baustelle und die verfügbaren Baustellenlisten zu verwalten.
+
+Insgesamt tragen Signals im Projekt dazu bei, UI-Reaktionen direkter und klarer insbesondere in Bereichen mit häufigen Zustandswechseln durch Live-Daten von Sensoren.
 
 \subsection{Components}
 
@@ -776,6 +773,77 @@ Wie vorher gesagt bietet der Service nicht nur live Daten sondern auch einige En
 \item \textbf{get:} https://localhost:53488/api/Sensors/history/door/{containerId}?days={days}
 \end{itemize}
 
+\subsection{Models}
+Models in Angular sind TypeScript Interfaces, die festlegen, wie Daten in der Anwendung aussehen sollen. Komponenten und Services arbeiten dadurch mit einheitlichen, erwartbaren Datenobjekten statt mit unstrukturierten Daten. Das verbessert die Lesbarkeit, reduziert Fehler und macht die Kommunikation einfacher.
+
+\subsubsection{Container Model}
+Das Container-Model definiert und beschreibt die vollständige Datenstruktur eines Containers. Alle Stammdaten und Zuordnung, Sensordaten und schafft damit eine typsichere Grundlage für Anzeige, Verarbeitung und Kommunikation.
+
+\begin{lstlisting}[
+    caption=Container Model,
+    label=lst:realmconfig,
+    basicstyle=\ttfamily\small
+]
+
+export interface Container {
+  id?: string; 
+  name: string;
+  constructionSite: string;
+  doorId: string;
+  insideSensorId: string;
+  mainContainer: boolean; 
+  outsideSensorId: string;
+  plugId: string;
+  containerId:number,
+  
+  temperatureOutside?: number;
+  temperatureInside?: number; 
+  humidityInside?: number;    
+  humidityOutside?: number;   
+  doorOpen?: boolean;         
+  powerPlugged?: boolean;     
+  
+  lastUpdated?: Date;         
+  isOnline?: boolean;         
+}
+
+\end{lstlisting}
+
+\subsubsection{Sensor-Data-Model}
+Das Sensor-Data-Model in sensor-data.ts definiert die Struktur der Sensordaten, die vom Backend an das Frontend übertragen werden. Es handelt sich dabei um DTOs. Ziel ist, dass Sensorwerte im Dashboard einheitlich verarbeitet und angezeigt werden können, unabhängig vom konkreten Sensortyp.
+
+\begin{itemize}
+\item `ContainerSensorsDTO` vereint alle Informationen eines Containers in einem Objekt (Bewegung, Tür, Steckdose, Innen- und Außensensor).
+\begin{lstlisting}[
+    caption=ContainerSensorsDTO,
+    label=lst:realmconfig,
+    basicstyle=\ttfamily\small
+]
+export interface ContainerSensorsDTO {
+  containerId: number;
+  appearance?: AppearanceSensorDTO;
+  door?: DoorSensorDTO;
+  plugLight?: PlugLightSensorDTO;
+  insideSensor?: TemperatureHumiditySensorDTO;
+  outsideSensor?: TemperatureHumiditySensorDTO;
+}
+\end{lstlisting}
+\item getrennte Submodels(`AppearanceSensorDTO`, `DoorSensorDTO`, `PlugLightSensorDTO` und `TemperatureHumiditySensorDTO`) geben dann mehr Information zu den jeweiligen Sensoren.
+\begin{lstlisting}[
+    caption=Beispiel für ein Submodel,
+    label=lst:realmconfig,
+    basicstyle=\ttfamily\small
+]
+export interface AppearanceSensorDTO {
+  motionState: string;
+  presence: boolean;
+}
+\end{lstlisting}
+
+\end{itemize}
+
+
+
 \subsection{Guards}
 In Angular wird die Zugriffs Kontrolle auf Routen über Guards geregelt. Guards kontrollieren ob User bestimmte Routen aufrufen oder aber auch verlassen dürfen. Sie kontrollieren die Navigation des User, so das dieser ohne die erforderlichen Rechte nicht auf geschützte Routen kommt. Guards bestehen aus einer einer einzigen Typescript Datei, diese kann einfach, in der Angular CLI, mit dem Befehl 
 \begin{lstlisting}[language=bash, caption={erstellen eines Guards in der Angular CLI}]
@@ -807,9 +875,93 @@ Im Guard wird auf die Rolle des angemeldeten Users geprüft. Zurzeit gibt es nur
 
 
 
-\section{Grafana [Elias Mahr]}
+\section{Cronjob}
 \setauthor{Elias Mahr}
 
+Um die Container wirklich voll automatisch ein- und ausschalten zu können, kam für uns nur die Verwendung eines Cronjobs auf dem Server in Frage. Im Unterricht hatten wir bereits davon gehört.
+Ein Cron-Daemon ist ein Linux-Programm, das meistens Shell Skripte zeitgesteuert auslöst, sogenannte Cronjobs. 
+Somit kann man Aufgaben nach einem Zeitplan immer wiederholend ausführen.
+
+\subsection{Syntax}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{pics/Cronjob.png}
+    \caption{Cronjob Syntax}
+    \label{fig:CronjobSyntax}
+\end{figure}
+
+Jeder Cronjob ist eine Zeile in dem crontab File. Diese Zeile definiert mit der oben gezeigten Syntax, wann und wie oft welches Skript ausgeführt werden soll.
+So können auch komplizierte Zeitpläne für die Durchführung der Schaltungen gebaut werden. Mit / können Schritte definiert werden, wie zum Beispiel bei Stunde = /6. Das würde bedeuten, dass das angeführte Skript bzw. Programm jede 6. Stunde ausgeführt wird. 
+Mit dem Operator ``-'' können Bereiche definiert werden, z.B. Wochentag = 0-6. Das würde bedeuten, dass das ausgeführte Skript bzw. Programm täglich ausgeführt wird.
+
+\subsection{Umsetzung in der Diplomarbeit}
+Grundlage für die Automatisierung zur ein und Ausschaltung ist ein Cronjob, der in einem definierten Intervall(5:00-16:00) ein JavaScript Skript startet.
+Dieses Skript prüft für jeden Container, ob laut Kalenderregel (Arbeitszeit, Wochentag, Betriebsurlaub) ein Betrieb vorgesehen ist, und wenn ja wann.
+Daraufhin werden abhängig vom Ergebnis die entsprechenden Schaltbefehle ausgeführt(Heizung 30 min vor Start einschalten). Während der Arbeitszeit gibt es noch einen Job, der alle 30 min ein Skript ausführt, dass prüft, ob die Türe offen ist, und wenn ja wie lange. Bei zu langer Öffnung der Türe wird die Heizung/Kühlung auch deaktiviert um Strom zu Sparen. Beides Funktioniert über ein Skript am Server, das die jeweiligen Informationen aus der Datenbank liest und wenn nötig neue Daten in die Datenbank schreibt (zum Beispiel den Status des Heating-Plugs auf ''ON'' anstatt ''OFF'').
+Der action-handler erkennt die änderung in der Datenbank und schaltet daraufhin den Plug ein. Das Frontend erkennt ebenfalls durch den FirestoreListener die Änderung in der Datenbank und aktualisiert es in der UI.
+
+\section{Reverse-Proxy [Elias Mahr]}
+\setauthor{Elias Mahr}
+Ein Reverse-Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegengenommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Dadurch werden die echten Adressen verschleiert.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.15]{pics/ReverseProxy.png}
+    \caption{Reverse-Proxy (Quelle: \url{https://commons.wikimedia.org/wiki/File:Reverse_proxy_h2g2bob.svg}, Lizenz: CC0)}
+    \label{fig:ReverseProxy}
+\end{figure}
+
+\subsection{Nutzen in der Diplomarbeit}
+Es gibt drei Hauptgründe, weshalb ein Reverse-Proxy eingebaut werden musste.
+\begin{itemize}
+\item \underline{Keycloaks https Redirects:}
+Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandards, um zum Beispiel Man-in-the-Middle-Angriffe zu verhindern.
+\item \underline{Port Chaos:}
+Mit vielen verschiedenen Ports, wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken.
+\item \underline{Sicherheit:}
+Zur Reduzierung der Angriffsfläche sollten nur zwingend notwendige Ports öffentlich erreichbar sein. Jeder zusätzlich exponierte Dienst erhöht das Risiko potenzieller Angriffe.
+Interne Dienste, wie beispielsweise Backend-Services auf Port 5000, sind nicht von außen erreichbar und bleiben dadurch vor direktem Zugriff geschützt. Die Trennung zwischen öffentlich zugänglichen Komponenten und internen Services stellt eine grundlegende Sicherheitsmaßnahme dar.
+Auch wenn eine Webapplikation ausschließlich innerhalb des Intranets betrieben wird, ist der Einsatz zusätzlicher Sicherheitsmechanismen sinnvoll. Eine mehrschichtige Sicherheitsstrategie (Defense in Depth) trägt dazu bei, das Gesamtrisiko weiter zu reduzieren.
+\end{itemize}
+
+\subsection{Umsetzung}
+
+Nginx ist als eigener Docker Container mit nginx.conf implimentiert. Nur der Port 443 ist öffentlich mit Let's Encrypt-Zertifikaten.
+Die Ports werden pfadbasiert weitergeleitet:
+
+\begin{itemize}
+\item \underline{http://Keycloak:8080 $\to$ location /auth}
+\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /auth, label=lst:nginx:/auth]
+        location /auth {
+            proxy_pass http://keycloak:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Port 443;
+            proxy_buffer_size 128k;
+            proxy_buffers 4 256k;
+            proxy_busy_buffers_size 256k;
+        }
+\end{lstlisting}
+
+
+
+\item \underline{http://frontend:80 $\to$ location/}
+\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /, label=lst:nginx:/]
+        location / {
+            proxy_pass http://frontend:80;
+        }
+\end{lstlisting}
+\item \underline{http://backend:5000 $\to$ location /api}
+\begin{lstlisting}[language=bash, caption=Nginx Konfiguration /api, label=lst:nginx:/api]
+        location /api {
+            proxy_pass http://backend:5000;
+        }
+\end{lstlisting}
+\end{itemize}
 
 \section{Backend [Timon Schmalzer]}
 \setauthor{Timon Schmalzer}

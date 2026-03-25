@@ -134,35 +134,6 @@ MQTT bietet mehrere Vorteile gegenüber klassischen Kommunikationsprotokollen:
 \subsection{GitHub Container Registry (ghcr.io) [Leopold Mistelberger]}
 \setauthor{Leopold Mistelberger}
 
-\section{Server- und Infrastrukturtechnologien [Elias Mahr]}
-\setauthor{Elias Mahr}
-
-
-\section{Reverse-Proxy [Elias Mahr]}
-\setauthor{Elias Mahr}
-Ein Reverse-Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegengenommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Dadurch werden die echten Adressen verschleiert.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.15]{pics/ReverseProxy.png}
-    \caption{Reverse-Proxy (Quelle: \url{https://commons.wikimedia.org/wiki/File:Reverse_proxy_h2g2bob.svg}, Lizenz: CC0)}
-    \label{fig:ReverseProxy}
-\end{figure}
-
-\subsection{Nutzen in der Diplomarbeit}
-Es gibt drei Hauptgründe, weshalb ein Reverse-Proxy eingebaut werden musste.
-\begin{itemize}
-\item \underline{Keycloaks https Redirects:}
-Keycloak verwendet moderne Standards wie OpenID Connect. Diese Standards setzen auch eine HTTPs Redirect URL voraus. Https setzt im Gegensatz zu http die nötigen Sicherheitsstandards, um zum Beispiel Man-in-the-Middle-Angriffe zu verhindern.
-\item \underline{Port Chaos:}
-Mit vielen verschiedenen Ports, wie 80 für das Frontend, 8080 für Keycloak und 5000 für das Backend wäre alles sehr unübersichtlich. Der User müsste sich 3 URLs merken.
-\item \underline{Sicherheit:}
-Zur Reduzierung der Angriffsfläche sollten nur zwingend notwendige Ports öffentlich erreichbar sein. Jeder zusätzlich exponierte Dienst erhöht das Risiko potenzieller Angriffe.
-Interne Dienste, wie beispielsweise Backend-Services auf Port 5000, sind nicht von außen erreichbar und bleiben dadurch vor direktem Zugriff geschützt. Die Trennung zwischen öffentlich zugänglichen Komponenten und internen Services stellt eine grundlegende Sicherheitsmaßnahme dar.
-Auch wenn eine Webapplikation ausschließlich innerhalb des Intranets betrieben wird, ist der Einsatz zusätzlicher Sicherheitsmechanismen sinnvoll. Eine mehrschichtige Sicherheitsstrategie (Defense in Depth) trägt dazu bei, das Gesamtrisiko weiter zu reduzieren.
-\end{itemize}
-
-
 \section{Auswahl der Technologie - Sicherheit(Authentifizierung)}
 \setauthor{Elias Mahr}
 
@@ -204,27 +175,6 @@ Keycloak ist ein Open Source System, das heißt, es ist öffentlich zugänglich 
 In der grafischen Oberfläche des Systems ist das Erweitern der Funktionen, zum Beispiel das neue Anlegen von Usern oder eine neue Rechtevergabe, auch für Menschen ohne Vorkenntnisse im Programmieren sehr einfach. Sollte sich die Firma entscheiden unsere Webapp zu erweitern ist das sehr von Vorteil, da sie keine eigene Programmierabteilung im Haus hat.
 \subsubsection{Nachteile}
 Im Vergleich zu einer selbsterstellten Lösung hat Keycloak einen sehr hohen Ressourcenverbrauch, teilweise auch für Funktionen, die in unserer Webapp nicht implementiert sind. Das Erstellen eines Logins mit Keycloak ist sehr zeitintensiv und nimmt mehrere Tage in Anspruch, besonders für Entwickler, die noch nie damit in Berührung gekommen sind.
-
-\section{Cronjob}
-\setauthor{Elias Mahr}
-
-Um die Container wirklich voll automatisch ein- und ausschalten zu können, kam für uns nur die Verwendung eines Cronjobs auf dem Server in Frage. Im Unterricht hatten wir bereits davon gehört.
-Ein Cron-Daemon ist ein Linux-Programm, das meistens Shell Skripte zeitgesteuert auslöst, sogenannte Cronjobs. 
-Somit kann man Aufgaben nach einem Zeitplan immer wiederholend ausführen.
-
-\subsection{Syntax}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.3]{pics/Cronjob.png}
-    \caption{Cronjob Syntax}
-    \label{fig:CronjobSyntax}
-\end{figure}
-
-Jeder Cronjob ist eine Zeile in dem crontab File. Diese Zeile definiert mit der oben gezeigten Syntax, wann und wie oft welches Skript ausgeführt werden soll.
-So können auch komplizierte Zeitpläne für die Durchführung der Schaltungen gebaut werden. Mit / können Schritte definiert werden, wie zum Beispiel bei Stunde = /6. Das würde bedeuten, dass das angeführte Skript bzw. Programm jede 6. Stunde ausgeführt wird. 
-Mit dem Operator ``-'' können Bereiche definiert werden, z.B. Wochentag = 0-6. Das würde bedeuten, dass das ausgeführte Skript bzw. Programm täglich ausgeführt wird.
-
 
 \section{Auswahl der Technologie Frontend}
 \setauthor{Elias Mahr}
@@ -433,6 +383,23 @@ app/pages/login
     Änderungen: keine.
     }
 \end{figure}
+
+Angular ist für ein strukturiertes, langfristig wartbares Projekt mit mehreren Funktionsbereichen besonders geeignet. Es ist ein komponentenbasiertes Framework, das unter anderem TypeScript, Routing und Dependency Injection logisch und einfach vereint. Dadurch entsteht eine klare, saubere Architektur. Im Vergleich zu kleineren Bibliotheken bietet Angular weniger Freiheit in der Gestaltung der Grundstruktur der Webapp, dafür aber mehr Effizients  und einfachere Entwicklung in großen Projekten.
+
+Ein wesentlicher Unterschied zu vielen anderen Ansätzen ist, dass Angular bereits viele Kernteile liefert. Dazu zählen unter anderem typsichere Entwicklung mit TypeScript, css und html, Komponenten, Models Guards für geschützte Routen und Services. Für dieses Projekt ist das besonders relevant, weil mehrere Services gleichzeitig gebraucht werden, Bereiche abgesichert und unterschiedliche Datenquellen in der UI zusammengeführt werden. Die Struktur reduziert dabei den Bedarf an zusätzlichen Bibliotheken und macht somit die Entwicklung leichter.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.079]{pics/AngularClean1.png}
+    \caption{Beispiel für eine Aufteilung von Services, Components, Models, Guards und Routes in Angular }
+    \label{fig:CleanAngular}
+\end{figure}
+
+\subsubsection{Vorteile von Angular}
+Die Vorteile von Angular in diesem konkreten Projekt liegen vor allem in der klaren Struktur. Die Services und Komponenten werden auch in Zukunft noch leicht für das Unternehmen zu verstehen sein und können somit auch gut erweitert werden.  Angular deckt vor allem auch im Bereich der Sicherheit, mit ihren Guards, einiges ab. Bei eines so großen Projektumfang ist das natürlich dann leichter zu implementieren und im laufenden Betrieb sicherer.
+
+\subsubsection{Nachteile von Angular}
+Mögliche Nachteile sind dennoch gegeben. Angular bringt im Vergleich zu minimalistischeren Frameworks einen höheren Einarbeitungsaufwand mit sich, insbesondere durch Konzepte wie Dependency Injection. Diese Einarbeitungszeit ist  besonders relevant für die zukünftige Wartung des Projekts, da mit großer Wahrscheinlichkeit davon ausgegangen werden muss, dass es von jemanden gewartet wird der noch nie mit dem Framework in Berührung gekommen ist. Jedoch ist abzuwiegen ob bei einem anderen, nicht so schweren Framework, die Einarbeitungszeit nicht erst recht länger wäre. Für kleinere, rein statische Anwendungen wäre dieser Umfang den Angular bietet zu viel. In einem großen, umfangreichen und langfristig betriebenen System wie diesem überwiegen jedoch die Vorteile der klaren Architektur, Wartbarkeit und Erweiterbarkeit.
 
 \section{Auswahl der Technologie: Chart Visualisierung}
 Bei der Auswahl der Technologie für die Visualisierung der Daten im Frontend ist eine der Anforderungen etwas Vorgefertigter zu nehmen um Zeit zu sparen und nichts unnötiges zu programmieren, dass schon von anderen besser entwickelt wurde.
