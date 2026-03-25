@@ -418,9 +418,78 @@ app/pages/login
 
 \subsection{Angular [Elias Mahr]}
 \setauthor{Elias Mahr}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{pics/AngularLogo.png}
+    \caption{Angular-Logo}
+    \label{fig:angularlogo}
+    \vspace{0.3em}
 
-\section{Chart Visualisierung}
+    {\footnotesize
+    Quelle: „Angular Horizontal Logo SVG“ von Svgmix, via Wikimedia Commons:
+    \url{https://commons.wikimedia.org/wiki/File:Angular_horizontal_logo.svg}. 
+    Lizenzangabe laut Commons: CC BY-SA 4.0 (Attribution: Svgmix),
+    \url{https://creativecommons.org/licenses/by-sa/4.0/}; zusätzlich als PD-textlogo gekennzeichnet. 
+    Änderungen: keine.
+    }
+\end{figure}
+
+\section{Auswahl der Technologie: Chart Visualisierung}
+Bei der Auswahl der Technologie für die Visualisierung der Daten im Frontend ist eine der Anforderungen etwas Vorgefertigter zu nehmen um Zeit zu sparen und nichts unnötiges zu programmieren, dass schon von anderen besser entwickelt wurde.
+
 \setauthor{Elias Mahr}
+
+\subsection{Plotly}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{pics/PlotlyLogo.png}
+    \caption{Plotly-Logo}
+    \label{fig:plotlylogo}
+    \vspace{0.3em}
+    
+    {\footnotesize
+    Quelle: „Plotly logo“ von Siliconred, via Wikimedia Commons:
+    \url{https://commons.wikimedia.org/wiki/File:Plotly-logo-01-square.png}. 
+    Lizenz: Creative Commons Attribution-Share Alike 4.0 International (CC BY-SA 4.0),
+    \url{https://creativecommons.org/licenses/by-sa/4.0/}. 
+    Änderungen: keine.
+    }
+\end{figure}
+
+Plotly ist ein Softwareunternehmen, dass sich auf Datenvisualisierung spezialisiert hat. Das Unternehmen hat in der Vergangenheit Open Source Technologien veröffentlicht, ist jetzt aber auch mit Plotly Studio und Plotly Cloud kommerziell. Ihr Ziel ist es, Daten interaktiv und verständlich darzustellen. Bibliotheken wie  Plotly.js und Plotly.py sind weltweit sehr häufig genutzte Datenvisualisierungstools.
+
+\subsubsection{Vorteile von Plotly}
+Ein sehr positives Feature bei Plotly im Gegensatz zu Grafana wäre die direkte Integration in das Frontend ohne, dass eine extra Plattform benötigt wird. Die JavaScript Bibliothek könnte direkt in den Files verwendet werden. Man wäre nicht abhängig von einer externen Plattform und müsste sich deshalb weit weniger neues Wissen über eine bislang unbekannte Technologie aneignen. Ein weiteres Argument für Plotly wäre die hohe Flexibilität, bei unseren spezifischen Sensordaten könnten im Code leicht Anpassungen gemacht werden und spätere Erweiterungen von Seiten der Firma wären leichter. Auch die Vorkenntnisse des Unternehmens im Bereich JavaScript wäre ein großer Pluspunkt.
+
+\subsubsection{Nachteileteile von Plotly}
+Die Frontend Entwicklung wäre langwieriger als bei anderen Alternativen, da Layout, Achsen und Spezialfälle selbst gepflegt und erstellt werden müssen. Dies hätte auch zur Folge das, dass warten besonders im Punkt UI schwierig sein könnte. Alle Themes und Styles müssen selbst mittel Css festgelegt werden.
+
+\subsection{Grafana}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.33\textwidth]{pics/Grafana.png}
+    \caption{Grafana-Logo}
+    \label{fig:grafanalogo}
+    \vspace{0.3em}
+    
+    {\footnotesize
+    Quelle: „Grafana logo“ von <Urheber>, via Wikimedia Commons:
+    \url{https://commons.wikimedia.org/wiki/File:<Dateiname>}. 
+    Lizenz: Creative Commons Attribution-Share Alike 4.0 International (CC BY-SA 4.0),
+    \url{https://creativecommons.org/licenses/by-sa/4.0/}. 
+    Änderungen: keine.
+    }
+\end{figure}
+
+Grafana ist eine professionelle Open Source Plattform zur zentralen Beobachtung und Auswertung von Daten. Über Plugins ins können viele Quellen in Grafana eingebaut werden. Unter anderem gibt es Firestore oder Postgres-Sql Plugins. Die abgefragten Daten können im nächsten Schritt durch Diagramme, Tabellen und Statusanzeigen auf einem Dashboard dargestellt werden. In Grafana können Schwellenwerte definiert werden, so kann bei einer gewissen Grenze die Farbe geändert werden oder sogar jemand benachrichtigt werden.
+
+\subsubsection{Vorteile von Grafana}
+Besonders bei vielen Messdaten wie Temperatur, Luftfeuchtigkeit, Türstatus und Steckdosenzuständen ist Grafana sehr gut und eines der besten Visualisierung Programme zurzeit. Durch die weitläufige Auswahl an Plugins von Datenquellen wäre der Start oder eine spätere Erweiterung auf zusätzliche Systeme einfach möglich. Insgesamt ist Grafana für ein professionelles Dashboard eine großartige und oft die beste Wahl.
+
+\subsubsection{Nachteile von Grafana}
+Die Anpassung an die geforderten projektspezifischen Funktionen ist in manchen Fällen nur über Umwege oder mit zusätzliche Komponenten möglich. Da Grafana so groß ist mit so vielen Möglichkeiten, führt das in der Praxis zu zusätzlicher Komplexität und geringerer Flexibilität für kurzfristige Änderungen, im besonderen für Menschen die keine Erfahrung mit der Plattform haben.
 
 \section{Backend}
 \setauthor{Timon Schmalzer}

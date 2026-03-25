@@ -654,7 +654,25 @@ Zur Erstellung der Pdf wird eine fertige JavaScript-Bibliothek JsPdf genutzt. Di
 
 \subsubsection{plotly-chart}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.22]{pics/PlotlyChart.png}
+    \caption{Plotly Chart Beispiel}
+    \label{fig:PlotlyChart}
+\end{figure}
+
+Für die Umsetzung der Diagramm-Visualisierung wurde Plotly gewählt und nicht Grafana. Ausschlaggebend war vor allem die bessere Integration in die bestehende Angular-Frontend-Architektur. Bei Grafana wäre ein zusätzlicher Betriebs- und Integrationsaufwand entstanden. Nach zwei Tagen entschied die Firma kein Grafana zu wollen, sondern eine alternative zu bevorzugen. Die Plotly-Chart-Komponente übernimmt die Darstellung von Daten im Dashboard. Sie ist als wiederverwendbare UI-Komponente aufgebaut und erhält ihre Daten über Eingabeparameter, wodurch unterschiedliche Diagrammtypen mit derselben Komponente angezeigt werden können. Die Komponente lädt Plotly zur Laufzeit, erstellt die Darstellung beim ersten Rendern und aktualisiert bestehende Diagramme bei Datenänderungen, ohne die gesamte Ansicht neu aufzubauen. Dadurch bleibt die Darstellung auch bei häufigen Aktualisierungen reaktionsfähig. Kontinuierliche Werte wie Temperatur oder Leistung werden als klassische Linienverläufe dargestellt.
+
 \subsubsection{calendar-editor}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{pics/CalenderEditorcomponent.png}
+    \caption{calender-editor Komponente}
+    \label{fig:CalenderEditor}
+\end{figure}
+Die calendar-editor Komponente dient der individuellen Bearbeitung der Betriebszeiten der Container. Durch den potenziellen Schaden, den man damit machen könnte, ist sie als geschützte Route eingebunden und kann nur von Admins aufgerufen werden. Erst nach erfolgreicher Anmeldung wird die Komponente freigegeben.
+Beim Öffnen lädt die Komponente bestehende Kalenderdaten über den CalendarService und gibt die Elemente vor. Zurzeit wird  der Standard vier Tage, der Standard fünf Tage Kalender und eine Auswahlmöglichkeit für einen Individuellen Kalender geladen, dies kann jedoch jederzeit erweitert werden. Die Auswahl der Standardkalender wurde in Abstimmung mit dem Unternehmen festgelegt. Für Standorte in Wien und im Burgenland wird standardmäßig ein 4-Tage-Kalender verwendet, in den übrigen Bundesländern ein 5-Tage-Kalender. Diese Zuordnung wird bei der Erstellung eines Containers automatisch gesetzt, sollte man sie im Nachhinein jedoch ändern wollen, sollte das leicht möglich sein. Falls eine Baustelle eine abweichende Regelung benötigt, kann unter Individuell ein Kalender mit ganz anderen Betriebszeiten gespeichert werden.
+
 
 \subsection{Dependency Injection}
 Um die Logik in allen Komponenten nicht immer wieder neu Laden zu müssen benutzt Angular das design Pattern der Dependency Injection.
