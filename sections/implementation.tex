@@ -1171,4 +1171,293 @@ Durch die klare Aufteilung der Endpunkte ist das Backend sowohl für Echtzeitans
 Für die Firma bedeutet das in der Praxis, dass sowohl der aktuelle Zustand eines Containers als auch dessen Verlauf jederzeit kontrolliert werden kann. Damit wird die technische Grundlage für eine verlässliche Überwachung und spätere Optimierungen im Energieverbrauch geschaffen.
 
 
+\subsection{Program.cs und Middleware-Pipeline}
+
+Die Datei \texttt{Program.cs} bildet den zentralen Einstiegspunkt des Backends. In ihr werden alle notwendigen Services registriert und die HTTP-Pipeline in der richtigen Reihenfolge aufgebaut. Dadurch wird sichergestellt, dass Authentifizierung, Autorisierung, CORS und Controller-Verarbeitung stabil zusammenspielen.
+
+\subsubsection{Initialisierung und Service-Container}
+
+Zu Beginn wird der ASP.NET-Core-Servicecontainer aufgebaut. Neben den Controllern werden JSON-Optionen, Swagger, Authentifizierung und die eigenen Repository-Klassen registriert. Besonders wichtig ist dabei die klare Trennung zwischen Framework-Services und projektspezifischen Komponenten.
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Registrierung zentraler Backend-Services,
+    label=lst:backend:program:services,
+    basicstyle=\ttfamily\small
+]
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+
+builder.Services.AddScoped<IContainerRepository, ContainerRepository>();
+builder.Services.AddScoped<ContainerRepository>();
+builder.Services.AddScoped<LatestSensorDataRepository>();
+builder.Services.AddScoped<PlugActionRepository>();
+builder.Services.AddScoped<CalendarRepository>();
+builder.Services.AddScoped<PlugRepository>();
+builder.Services.AddHttpClient<CalendarService>();
+\end{lstlisting}
+
+Durch diese Struktur bleiben Verantwortlichkeiten sauber getrennt: Controller verarbeiten Requests, Repositories übernehmen den Datenzugriff und Services kapseln Fachlogik.
+
+Ein wichtiger Implementierungsaspekt ist die Wahl der Service-Lebensdauer. Repositories werden als \texttt{Scoped} registriert, damit pro HTTP-Anfrage ein konsistenter Arbeitskontext entsteht. Die \texttt{FirestoreDb} wird dagegen als \texttt{Singleton} registriert, da die Datenbankverbindung teuer in der Initialisierung ist und von allen Requests wiederverwendet werden soll.
+
+\subsubsection{Middleware-Reihenfolge und Request-Flow}
+
+Nach der Service-Registrierung wird die Middleware-Pipeline aufgebaut. Die Reihenfolge ist für das Laufzeitverhalten entscheidend. Wenn Authentifizierung und Autorisierung in falscher Reihenfolge oder an falscher Stelle eingebunden werden, funktionieren geschützte Endpunkte nicht korrekt.
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=HTTP-Pipeline im Backend,
+    label=lst:backend:program:pipeline,
+    basicstyle=\ttfamily\small
+]
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CESC API v1");
+        c.RoutePrefix = string.Empty;
+    });
+}
+
+if (!builder.Configuration.GetValue<bool>("Docker", false))
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseCors("AllowAngularApp");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+\end{lstlisting}
+
+Der Request-Flow ist damit klar definiert: Zuerst werden CORS-Regeln angewendet, danach erfolgt die Token-Prüfung, anschließend die Rollenprüfung und zuletzt die Übergabe an den passenden Controller-Endpunkt.
+
+Abbildung~\ref{fig:backend:program:pipeline-flow} zeigt den vereinfachten Ablauf der Pipeline aus Sicht einer eingehenden API-Anfrage.
+
+\IfFileExists{pics/program-pipeline-flow.png}{
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{pics/program-pipeline-flow.png}
+    \caption{Ablauf der Middleware-Pipeline im Backend}
+    \label{fig:backend:program:pipeline-flow}
+\end{figure}
+}{
+\noindent\textit{Hinweis: Die Abbildung \texttt{pics/program-pipeline-flow.png} ist noch nicht eingebunden.}
+}
+
+\subsubsection{CORS- und Security-Konfiguration}
+
+Für die sichere Kommunikation mit dem Frontend wurde eine eigene CORS-Policy definiert. Es werden nur die im Projekt notwendigen Ursprünge freigegeben, unter anderem lokale Entwicklungsumgebungen und das interne Docker-Frontend.
+
+Zusätzlich wird die API über JWT-Bearer-Authentifizierung geschützt. Die Konfiguration bezieht sich auf Keycloak und setzt die erforderlichen Token-Validierungsparameter:
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=JWT-Bearer-Authentifizierung mit Keycloak,
+    label=lst:backend:program:jwt-config,
+    basicstyle=\ttfamily\small
+]
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = "http://keycloak:8080/realms/cesc";
+        options.Audience = "cesc-backend";
+        options.RequireHttpsMetadata = false; // Nur in Entwicklung
+        
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = false, // Keycloak inkludiert Audience nicht konsistent
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ClockSkew = TimeSpan.FromMinutes(5)
+        };
+    });
+\end{lstlisting}
+
+In der Token-Validierung werden Aussteller, Ablaufzeit und Signaturschlüssel geprüft. Die Zielgruppenprüfung ist bewusst deaktiviert (\texttt{ValidateAudience = false}), da die Keycloak-Tokens je nach Fluss nicht immer ein konsistentes Audience-Feld enthalten.
+
+Für rollenbasierte Zugriffe ist im Backend eine \texttt{AdminOnly}-Policy hinterlegt. Damit lassen sich schreibende oder administrative Endpunkte gezielt absichern, ohne den Zugriff auf reine Leseendpunkte unnötig einzuschränken.
+
+\subsubsection{Entwicklungs- und Produktionsverhalten}
+
+Die Pipeline unterscheidet klar zwischen Entwicklungs- und Produktionsbetrieb. Swagger und Swagger-UI werden nur in der Entwicklungsumgebung geladen. Dadurch sind die API-Dokumentation und Testoberfläche lokal direkt verfügbar, ohne in produktiven Umgebungen dauerhaft offen betrieben zu werden.
+
+Zusätzlich wird die HTTPS-Weiterleitung abhängig vom Docker-Flag gesteuert. In lokalen Nicht-Docker-Szenarien wird auf HTTPS umgeleitet, während in containerisierten Deployments die TLS-Terminierung über den vorgeschalteten Reverse-Proxy erfolgt.
+
+\subsubsection{Firestore-Initialisierung und Credentials}
+
+Die Firestore-Anbindung wird in \texttt{Program.cs} direkt initialisiert. Dazu wird zuerst der Credential-Pfad aus der Konfiguration gelesen, anschließend die \texttt{project\_id} aus der JSON-Datei extrahiert und die Umgebungsvariable \texttt{GOOGLE\_APPLICATION\_CREDENTIALS} gesetzt.
+
+Danach wird die \texttt{FirestoreDb} als Singleton registriert. Dadurch verwenden alle Repositories dieselbe initialisierte Datenbankinstanz, was das Laufzeitverhalten stabil und effizient macht.
+
+Diese Initialisierung ist ein zentraler Bestandteil der Backend-Implementierung, weil ohne sie weder Kalenderlogik noch Sensor- und Containerendpunkte Daten aus Firestore lesen oder schreiben könnten.
+
+\subsection{PlugControl und Aktorsteuerung}
+
+Die Aktorsteuerung wird im \texttt{PlugControlController} umgesetzt. Das Backend schaltet die Verbraucher nicht direkt, sondern schreibt Steuerauftraege in die Firestore-Collection \texttt{actions}. Diese Entkopplung ist fuer CESC wichtig, weil die physische Schaltung asynchron auf Raspberry-Pi-Seite durch den Action-Handler verarbeitet wird.
+
+Abbildung~\ref{fig:backend:plugcontrol:sequence} zeigt den Ablauf von der API-Anfrage bis zur asynchronen Schaltausfuehrung auf dem Raspberry Pi.
+
+\IfFileExists{pics/plugcontrol-sequence.png}{
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{pics/plugcontrol-sequence.png}
+    \caption{Ablauf der PlugControl-Aktorsteuerung}
+    \label{fig:backend:plugcontrol:sequence}
+\end{figure}
+}{
+\noindent\textit{Hinweis: Die Abbildung \texttt{pics/plugcontrol-sequence.png} ist noch nicht eingebunden.}
+}
+
+\subsubsection{Steuerendpunkte für Licht, Heizung und Kühlung}
+
+Der zentrale Endpunkt ist \texttt{POST /api/PlugControl}. Das Frontend uebergibt \texttt{containerId}, \texttt{plugType} und den Zielstatus \texttt{ON/OFF}. Bei gueltiger Anfrage schreibt das Backend ein neues Aktionsdokument mit Zeitstempel und \texttt{Processed = false}. Die Antwort ist bewusst kompakt gehalten und liefert ein Erfolgsflag sowie eine kurze Meldung.
+
+Zusätzlich existiert ein Sammelendpunkt \texttt{POST /api/PlugControl/bulk-switch}. Dieser erzeugt Steueraktionen fuer mehrere Container in einem Aufruf. Dazu werden Plug-Sensoren aus den Collections \texttt{plugCoolingSensors}, \texttt{plugHeatingSensors} und \texttt{plugLightSensors} gelesen, auf die erlaubten Typen normalisiert und anschliessend als einzelne Aktionen persistiert.
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Erzeugen einer einzelnen Plug-Aktion,
+    label=lst:backend:plugcontrol:create-action,
+    basicstyle=\ttfamily\small
+]
+[HttpPost]
+public async Task<IActionResult> ControlPlug([FromBody] PlugControlRequest request)
+{
+    if (request.Status != "ON" && request.Status != "OFF")
+    {
+        return BadRequest(new { success = false, message = "Status must be ON or OFF" });
+    }
+
+    var newAction = new PlugActionDocument
+    {
+        ContainerId = request.ContainerId,
+        PlugType = request.PlugType,
+        Status = request.Status,
+        Timestamp = DateTime.UtcNow,
+        Processed = false
+    };
+
+    await db.Collection("actions").AddAsync(newAction);
+    return Ok(new { success = true, message = "Action created" });
+}
+\end{lstlisting}
+
+\subsubsection{Validierung der Steuerbefehle}
+
+Vor dem Schreiben in Firestore werden die Eingaben serverseitig geprueft. Dadurch wird verhindert, dass unvollstaendige oder fachlich ungueltige Steuerauftraege in die Datenbasis gelangen. Geprueft werden insbesondere eine gueltige \texttt{containerId}, ein gesetzter \texttt{plugType} und ein erlaubter \texttt{status}.
+
+Im Bulk-Endpunkt wird zusaetzlich verhindert, dass doppelte Aktionen fuer denselben Plug erzeugt werden. Dafuer wird ein eindeutiger Schluessel aus \texttt{containerId} und \texttt{sensorId} verwendet.
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Validierung und Dublettenvermeidung beim Bulk-Switch,
+    label=lst:backend:plugcontrol:bulk-validation,
+    basicstyle=\ttfamily\small
+]
+if (request.Status != "ON" && request.Status != "OFF")
+{
+    return BadRequest(new { success = false, message = "Status must be ON or OFF" });
+}
+
+var uniquePlugs = new HashSet<string>();
+string uniqueKey = $"{containerId}|{sensorId}";
+if (uniquePlugs.Contains(uniqueKey)) continue;
+uniquePlugs.Add(uniqueKey);
+\end{lstlisting}
+
+\subsubsection{Fehlerbehandlung bei Schaltvorgängen}
+
+Die Fehlerbehandlung ist so umgesetzt, dass das Frontend klare Rueckmeldungen erhaelt. Fachliche Validierungsfehler werden als \texttt{400 BadRequest} zurueckgegeben. Tritt beim Schreiben in Firestore ein technischer Fehler auf, antwortet der Endpunkt mit \texttt{500 InternalServerError}.
+
+Zusaetzlich protokolliert der Controller alle relevanten Schritte mit \texttt{ILogger}. Dadurch kann im Betrieb nachvollzogen werden, welcher Container, welcher Plug-Typ und welcher Zielzustand angefordert wurde. Diese Logs sind besonders hilfreich, wenn einzelne Schaltvorgaenge wegen Verbindungs- oder Datenproblemen nicht ausgefuehrt werden.
+
+Durch die Kombination aus Validierung, klaren Statuscodes und strukturiertem Logging bleibt die Aktorsteuerung auch bei Fehlerfaellen robust und fuer Wartung sowie Troubleshooting gut nachvollziehbar.
+
+\subsubsection{Asynchrone Verarbeitung auf dem Raspberry Pi}
+
+Nachdem die Steueraktion erfolgreich in Firestore gespeichert wurde, endet die Backend-Antwort an das Frontend. Die physische Schaltung erfolgt dann asynchron durch den Action-Handler auf dem Raspberry Pi.
+
+Der Action-Handler laeuft kontinuierlich auf dem Raspberry Pi und ueberwacht die Firestore-Collection \texttt{actions}. Sobald ein neues Dokument mit \texttt{Processed = false} erkannt wird, liest er den Befehl (\texttt{containerId}, \texttt{plugType}, \texttt{status}) aus und sendet ihn ueber Zigbee an den entsprechenden Zigbee-Stecker. Nach erfolgreich ausgefuehrter Schaltung aktualisiert der Handler das Aktionsdokument auf \texttt{Processed = true} und fuegt einen \texttt{CompletedAt}-Zeitstempel hinzu.
+
+Diese entkoppelte Architektur bietet mehrere Vorteile: Das Backend antwortet schnell und bleibt unabhaengig von der physischen Ausfuehrungsgeschwindigkeit. Falls der Raspberry Pi temporaer nicht erreichbar ist, sammeln sich die Aktionen in Firestore und werden beim Neustart automatisch verarbeitet. Gleichzeitig koennen mehrere Container und Plugs parallel gesteuert werden, ohne dass der Backend-Api blockiert.
+
+\subsection{Fehlerbehandlung, Logging und API-Rückgabecodes}
+
+In diesem Abschnitt werden Robustheit und Nachvollziehbarkeit der API-Implementierung zusammengefasst.
+
+\subsubsection{Statuscodestrategie im Backend}
+
+Die verwendeten HTTP-Statuscodes und deren Einsatzfälle werden systematisch erläutert.
+
+\subsubsection{Logging in Controllern und Services}
+
+Hier wird dokumentiert, welche Informationen geloggt werden und wie dies die Wartung unterstützt.
+
+\subsubsection{Debugging und Nachvollziehbarkeit im Betrieb}
+
+Dieser Teil beschreibt, wie Fehler im laufenden Betrieb analysiert und eingegrenzt werden können.
+
+
+\section{Datenbank [Timon Schmalzer]}
+\setauthor{Timon Schmalzer}
+
+Dieses Kapitel behandelt die konkrete Datenhaltung des Systems auf Basis von Firebase Firestore.
+
+\subsection{Datenmodell in Firestore}
+
+Die fachliche und technische Struktur der gespeicherten Daten wird hier vollständig dargestellt.
+
+\subsubsection{Collection-Struktur und Dokumentaufbau}
+
+Dieser Abschnitt beschreibt den Aufbau der Collections und die Inhalte einzelner Dokumente.
+
+\subsubsection{Container-, Sensor- und Kalenderdaten}
+
+Hier werden die wichtigsten Datentypen und deren Felder im Projektkontext erläutert.
+
+\subsubsection{Beziehungen und IDs im Datenmodell}
+
+Die Verknüpfung von Entitäten über IDs sowie die Zuordnung zwischen den Datensätzen wird hier erklärt.
+
+\subsection{Repository-Umsetzung für Firestore}
+
+Dieses Unterkapitel dokumentiert den konkreten Datenzugriff im Backend über Repository-Klassen.
+
+\subsubsection{ContainerRepository und SensorRepository}
+
+Die Implementierung und Aufgaben dieser beiden zentralen Repositories werden hier ausgearbeitet.
+
+\subsubsection{CalendarRepository und Regelverwaltung}
+
+Die Verwaltung von Kalenderregeln und Ausnahmen wird in diesem Abschnitt beschrieben.
+
+\subsubsection{Lese- und Schreibzugriffe in der Praxis}
+
+Hier werden typische Read- und Write-Abläufe anhand realer Backend-Operationen dargestellt.
+
+\subsection{Datenflüsse und Konsistenz}
+
+Dieser Abschnitt zeigt, wie Daten durch das System laufen und konsistent gehalten werden.
+
+\subsubsection{Von Sensordaten zur persistierten Struktur}
+
+Die Transformationsschritte von eingehenden Sensordaten bis zur Speicherung werden hier nachvollzogen.
+
+\subsubsection{Fallback-Strategien bei fehlenden Daten}
+
+Hier werden die implementierten Fallback-Mechanismen für unvollständige oder fehlende Daten erklärt.
+
+\subsubsection{Konsistenz zwischen API und Datenbank}
+
+Dieser Teil beschreibt, wie API-Rückgaben und persistierte Datenstrukturen aufeinander abgestimmt bleiben.
+
+
 
