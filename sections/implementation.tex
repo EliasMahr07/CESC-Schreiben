@@ -1010,7 +1010,7 @@ else
     calendarType = c.State.Trim().ToLower() == "upper_austria" ? "standard_5days" : "standard_4days";
     rule = await _calendarService.GetRuleForLocationAsync(calendarType);
     if (rule == null)
-        return NotFound($"Keine Regel fuer Kalender-Typ '{calendarType}' gefunden");
+    return NotFound($"Keine Regel fuer Kalender-Typ '{calendarType}' gefunden");
 }
 \end{lstlisting}
 
@@ -1301,9 +1301,9 @@ Diese Initialisierung ist ein zentraler Bestandteil der Backend-Implementierung,
 
 \subsection{PlugControl und Aktorsteuerung}
 
-Die Aktorsteuerung wird im \texttt{PlugControlController} umgesetzt. Das Backend schaltet die Verbraucher nicht direkt, sondern schreibt Steuerauftraege in die Firestore-Collection \texttt{actions}. Diese Entkopplung ist fuer CESC wichtig, weil die physische Schaltung asynchron auf Raspberry-Pi-Seite durch den Action-Handler verarbeitet wird.
+Die Aktorsteuerung wird im \texttt{PlugControlController} umgesetzt. Das Backend schaltet die Verbraucher nicht direkt, sondern schreibt Steueraufträge in die Firestore-Collection \texttt{actions}. Diese Entkopplung ist für CESC wichtig, weil die physische Schaltung asynchron auf Raspberry-Pi-Seite durch den Action-Handler verarbeitet wird.
 
-Abbildung~\ref{fig:backend:plugcontrol:sequence} zeigt den Ablauf von der API-Anfrage bis zur asynchronen Schaltausfuehrung auf dem Raspberry Pi.
+Abbildung~\ref{fig:backend:plugcontrol:sequence} zeigt den Ablauf von der API-Anfrage bis zur asynchronen Schaltausführung auf dem Raspberry Pi.
 
 \IfFileExists{pics/plugcontrol-sequence.png}{
 \begin{figure}[H]
@@ -1318,9 +1318,9 @@ Abbildung~\ref{fig:backend:plugcontrol:sequence} zeigt den Ablauf von der API-An
 
 \subsubsection{Steuerendpunkte für Licht, Heizung und Kühlung}
 
-Der zentrale Endpunkt ist \texttt{POST /api/PlugControl}. Das Frontend uebergibt \texttt{containerId}, \texttt{plugType} und den Zielstatus \texttt{ON/OFF}. Bei gueltiger Anfrage schreibt das Backend ein neues Aktionsdokument mit Zeitstempel und \texttt{Processed = false}. Die Antwort ist bewusst kompakt gehalten und liefert ein Erfolgsflag sowie eine kurze Meldung.
+Der zentrale Endpunkt ist \texttt{POST /api/PlugControl}. Das Frontend übergibt \texttt{containerId}, \texttt{plugType} und den Zielstatus \texttt{ON/OFF}. Bei gültiger Anfrage schreibt das Backend ein neues Aktionsdokument mit Zeitstempel und \texttt{Processed = false}. Die Antwort ist bewusst kompakt gehalten und liefert ein Erfolgsflag sowie eine kurze Meldung.
 
-Zusätzlich existiert ein Sammelendpunkt \texttt{POST /api/PlugControl/bulk-switch}. Dieser erzeugt Steueraktionen fuer mehrere Container in einem Aufruf. Dazu werden Plug-Sensoren aus den Collections \texttt{plugCoolingSensors}, \texttt{plugHeatingSensors} und \texttt{plugLightSensors} gelesen, auf die erlaubten Typen normalisiert und anschliessend als einzelne Aktionen persistiert.
+Zusätzlich existiert ein Sammelendpunkt \texttt{POST /api/PlugControl/bulk-switch}. Dieser erzeugt Steueraktionen für mehrere Container in einem Aufruf. Dazu werden Plug-Sensoren aus den Collections \texttt{plugCoolingSensors}, \texttt{plugHeatingSensors} und \texttt{plugLightSensors} gelesen, auf die erlaubten Typen normalisiert und anschließend als einzelne Aktionen persistiert.
 
 \begin{lstlisting}[
     language={[Sharp]C},
@@ -1352,9 +1352,9 @@ public async Task<IActionResult> ControlPlug([FromBody] PlugControlRequest reque
 
 \subsubsection{Validierung der Steuerbefehle}
 
-Vor dem Schreiben in Firestore werden die Eingaben serverseitig geprueft. Dadurch wird verhindert, dass unvollstaendige oder fachlich ungueltige Steuerauftraege in die Datenbasis gelangen. Geprueft werden insbesondere eine gueltige \texttt{containerId}, ein gesetzter \texttt{plugType} und ein erlaubter \texttt{status}.
+Vor dem Schreiben in Firestore werden die Eingaben serverseitig geprüft. Dadurch wird verhindert, dass unvollständige oder fachlich ungültige Steueraufträge in die Datenbasis gelangen. Geprüft werden insbesondere eine gültige \texttt{containerId}, ein gesetzter \texttt{plugType} und ein erlaubter \texttt{status}.
 
-Im Bulk-Endpunkt wird zusaetzlich verhindert, dass doppelte Aktionen fuer denselben Plug erzeugt werden. Dafuer wird ein eindeutiger Schluessel aus \texttt{containerId} und \texttt{sensorId} verwendet.
+Im Bulk-Endpunkt wird zusätzlich verhindert, dass doppelte Aktionen für denselben Plug erzeugt werden. Dafür wird ein eindeutiger Schlüssel aus \texttt{containerId} und \texttt{sensorId} verwendet.
 
 \begin{lstlisting}[
     language={[Sharp]C},
@@ -1375,19 +1375,19 @@ uniquePlugs.Add(uniqueKey);
 
 \subsubsection{Fehlerbehandlung bei Schaltvorgängen}
 
-Die Fehlerbehandlung ist so umgesetzt, dass das Frontend klare Rueckmeldungen erhaelt. Fachliche Validierungsfehler werden als \texttt{400 BadRequest} zurueckgegeben. Tritt beim Schreiben in Firestore ein technischer Fehler auf, antwortet der Endpunkt mit \texttt{500 InternalServerError}.
+Die Fehlerbehandlung ist so umgesetzt, dass das Frontend klare Rückmeldungen erhält. Fachliche Validierungsfehler werden als \texttt{400 Bad Request} zurückgegeben. Tritt beim Schreiben in Firestore ein technischer Fehler auf, antwortet der Endpunkt mit \texttt{500 Internal Server Error}.
 
-Zusaetzlich protokolliert der Controller alle relevanten Schritte mit \texttt{ILogger}. Dadurch kann im Betrieb nachvollzogen werden, welcher Container, welcher Plug-Typ und welcher Zielzustand angefordert wurde. Diese Logs sind besonders hilfreich, wenn einzelne Schaltvorgaenge wegen Verbindungs- oder Datenproblemen nicht ausgefuehrt werden.
+Zusätzlich protokolliert der Controller alle relevanten Schritte mit \texttt{ILogger}. Dadurch kann im Betrieb nachvollzogen werden, welcher Container, welcher Plug-Typ und welcher Zielzustand angefordert wurde. Diese Logs sind besonders hilfreich, wenn einzelne Schaltvorgänge wegen Verbindungs- oder Datenproblemen nicht ausgeführt werden.
 
-Durch die Kombination aus Validierung, klaren Statuscodes und strukturiertem Logging bleibt die Aktorsteuerung auch bei Fehlerfaellen robust und fuer Wartung sowie Troubleshooting gut nachvollziehbar.
+Durch die Kombination aus Validierung, klaren Statuscodes und strukturiertem Logging bleibt die Aktorsteuerung auch bei Fehlerfällen robust und für Wartung sowie Troubleshooting gut nachvollziehbar.
 
 \subsubsection{Asynchrone Verarbeitung auf dem Raspberry Pi}
 
 Nachdem die Steueraktion erfolgreich in Firestore gespeichert wurde, endet die Backend-Antwort an das Frontend. Die physische Schaltung erfolgt dann asynchron durch den Action-Handler auf dem Raspberry Pi.
 
-Der Action-Handler laeuft kontinuierlich auf dem Raspberry Pi und ueberwacht die Firestore-Collection \texttt{actions}. Sobald ein neues Dokument mit \texttt{Processed = false} erkannt wird, liest er den Befehl (\texttt{containerId}, \texttt{plugType}, \texttt{status}) aus und sendet ihn ueber Zigbee an den entsprechenden Zigbee-Stecker. Nach erfolgreich ausgefuehrter Schaltung aktualisiert der Handler das Aktionsdokument auf \texttt{Processed = true} und fuegt einen \texttt{CompletedAt}-Zeitstempel hinzu.
+Der Action-Handler läuft kontinuierlich auf dem Raspberry Pi und überwacht die Firestore-Collection \texttt{actions}. Sobald ein neues Dokument mit \texttt{Processed = false} erkannt wird, liest er den Befehl (\texttt{containerId}, \texttt{plugType}, \texttt{status}) aus und sendet ihn über Zigbee an den entsprechenden Zigbee-Stecker. Nach erfolgreich ausgeführter Schaltung aktualisiert der Handler das Aktionsdokument auf \texttt{Processed = true} und fügt einen \texttt{CompletedAt}-Zeitstempel hinzu.
 
-Diese entkoppelte Architektur bietet mehrere Vorteile: Das Backend antwortet schnell und bleibt unabhaengig von der physischen Ausfuehrungsgeschwindigkeit. Falls der Raspberry Pi temporaer nicht erreichbar ist, sammeln sich die Aktionen in Firestore und werden beim Neustart automatisch verarbeitet. Gleichzeitig koennen mehrere Container und Plugs parallel gesteuert werden, ohne dass der Backend-Api blockiert.
+Diese entkoppelte Architektur bietet mehrere Vorteile: Das Backend antwortet schnell und bleibt unabhängig von der physischen Ausführungsgeschwindigkeit. Falls der Raspberry Pi temporär nicht erreichbar ist, sammeln sich die Aktionen in Firestore und werden beim Neustart automatisch verarbeitet. Gleichzeitig können mehrere Container und Plugs parallel gesteuert werden, ohne dass die Backend-API blockiert.
 
 \subsection{Fehlerbehandlung, Logging und API-Rückgabecodes}
 
@@ -1395,15 +1395,146 @@ In diesem Abschnitt werden Robustheit und Nachvollziehbarkeit der API-Implementi
 
 \subsubsection{Statuscodestrategie im Backend}
 
-Die verwendeten HTTP-Statuscodes und deren Einsatzfälle werden systematisch erläutert.
+Die API befolgt dabei ein klares Statuscode-Schema, das sich an REST-Standards orientiert. Dies ermöglicht dem Frontend, die Anfrageergebnisse zuverlässig zu interpretieren:
+
+\begin{table}[H]
+    \centering
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{2.1cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+        \hline
+        \textbf{Code} & \textbf{Bedeutung} & \textbf{Beispiel-Szenario} \\
+        \hline
+        200 OK & Anfrage erfolgreich verarbeitet & Sensor-Daten gelesen, Plug-Aktion erzeugt \\
+        \hline
+        400 Bad Request & Fachliche Validierung fehlgeschlagen & Ungültiger \texttt{plugType}, fehlende \texttt{containerId} \\
+        \hline
+        401 Unauthorized & Authentifizierung erforderlich/fehlgeschlagen & Token abgelaufen, falscher/fehlender Bearer-Token \\
+        \hline
+        403 Forbidden & Authentifizierung ok, aber keine Berechtigung & Benutzer versucht Admin-Endpunkt ohne admin-Rolle \\
+        \hline
+        404 Not Found & Ressource existiert nicht & Container-ID nicht in Firestore vorhanden \\
+        \hline
+        500 Internal Server Error & Technischer Fehler im Backend & Firestore-Verbindungsabbruch, unerwartete Exception \\
+        \hline
+    \end{tabularx}
+    \caption{HTTP-Statuscode-Schema im CESC-Backend}
+    \label{tbl:backend:http-statuscodes}
+\end{table}
+
+Diese Trennung ist wichtig: \textbf{400 Bad Request} signalisiert Eingabefehler durch den Client und erfordert, Benutzereingaben zu korrigieren. \textbf{401/403} sind Authentifizierungs-/Autorisierungsprobleme, die von der Middleware behandelt werden. \textbf{500} deutet auf einen serverinternen Fehler hin, der Logging und Debugging erfordert.
+
+Abbildung~\ref{fig:backend:error:handling-flow} zeigt visuell, an welchen Punkten im Request-Verarbeitungsfluss welche Fehler auftreten können:
+
+\IfFileExists{pics/error-handling-flow.png}{
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.88\textheight,keepaspectratio]{pics/error-handling-flow.png}
+    \caption{Fehlerbehandlung und Validierungsfluss -- Wo entstehen welche Statuscodes}
+    \label{fig:backend:error:handling-flow}
+\end{figure}
+}{
+\noindent\textit{Hinweis: Die Abbildung \texttt{pics/error-handling-flow.png} ist noch nicht eingebunden.}
+}
 
 \subsubsection{Logging in Controllern und Services}
 
-Hier wird dokumentiert, welche Informationen geloggt werden und wie dies die Wartung unterstützt.
+Die Fehlerbehandlung ist eng mit dem Logging verbunden. Für die Authentifizierung werden kritische Events protokolliert. In \texttt{Program.cs} sind Listener für JWT-Validierungsereignisse registriert:
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=JWT-Authentication Logging via JwtBearerEvents,
+    label=lst:backend:error:jwt-logging,
+    basicstyle=\ttfamily\small
+]
+options.Events = new JwtBearerEvents
+{
+    OnAuthenticationFailed = context =>
+    {
+        Console.WriteLine($"[AUTH] Authentication failed: {context.Exception.Message}");
+        return Task.CompletedTask;
+    },
+    OnTokenValidated = context =>
+    {
+        Console.WriteLine($"[AUTH] Token validated for user: {context.Principal?.Identity?.Name}");
+        return Task.CompletedTask;
+    }
+};
+\end{lstlisting}
+
+Dies ermöglicht es, Authentifizierungsfehler direkt nachzuvollziehen. Außerdem werden kritische Initialisierungsschritte geloggt:
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Initialisierungs-Logging für Firestore,
+    label=lst:backend:error:firestore-logging,
+    basicstyle=\ttfamily\small
+]
+try
+{
+    var json = System.IO.File.ReadAllText(credentialsPath);
+    using var doc = System.Text.Json.JsonDocument.Parse(json);
+    projectId = doc.RootElement.GetProperty("project_id").GetString();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[ERROR] Failed to read project_id: {ex.Message}");
+    throw;
+}
+
+var db = FirestoreDb.Create(projectId);
+Console.WriteLine($"[Firestore DEBUG] Using Firestore project: {db.ProjectId}");
+\end{lstlisting}
+
+In den Controllern werden ähnlich Validierungsfehler und kritische Operationen protokolliert. Das folgende Listing ist ein vereinfachtes Muster zur Veranschaulichung:
+
+\begin{lstlisting}[
+    language={[Sharp]C},
+    caption=Fehlerbehandlung in Controllern,
+    label=lst:backend:error:controller-logging,
+    basicstyle=\ttfamily\small
+]
+if (request.Status != "ON" && request.Status != "OFF")
+{
+    _logger.LogWarning($"Invalid status '{request.Status}' for plugType '{plugType}'");
+    return BadRequest(new { success = false, message = "Status must be ON or OFF" });
+}
+
+try
+{
+    await _repository.CreateAction(newAction);
+    _logger.LogInformation($"Action created for containerId={containerId}, plugType={plugType}");
+    return Ok(new { success = true });
+}
+catch (Exception ex)
+{
+    _logger.LogError($"Firestore operation failed: {ex.Message}");
+    return StatusCode(500, new { success = false, message = "Internal server error" });
+}
+\end{lstlisting}
 
 \subsubsection{Debugging und Nachvollziehbarkeit im Betrieb}
 
-Dieser Teil beschreibt, wie Fehler im laufenden Betrieb analysiert und eingegrenzt werden können.
+Für die Wartung und Troubleshooting ist strukturiertes Logging unerlässlich. Die Logs sollten mindestens folgende Informationen enthalten:
+
+\begin{itemize}
+    \item \textbf{Zeitstempel}: Wann das Event aufgetreten ist
+    \item \textbf{Log-Level}: Information, Warning, Error (für Filterung und Priorisierung)
+    \item \textbf{Kontext}: User-ID, Betroffene Ressource (Container-ID, Plug-Typ), Request-ID
+    \item \textbf{Nachricht}: Verständliche Beschreibung des Problems oder der Aktion
+\end{itemize}
+
+Häufige Fehler und deren Lösung:
+
+\textbf{401 Unauthorized:} Das Token ist abgelaufen oder ungültig. Im Log erscheint die Authentication-Failed-Meldung. Lösung: Token erneuert vom Frontend anfordern.
+
+\textbf{403 Forbidden:} Der Benutzer hat die richtige Rolle nicht. Der Log zeigt den geprüften Benutzerkontext. Lösung: Admin-Rechte in Keycloak überprüfen.
+
+\textbf{400 Bad Request:} Die Eingabevalidierung ist fehlgeschlagen. Der Log nennt das ungültige Feld. Lösung: Frontend-Eingabe überprüfen oder Schnittstelle in der Dokumentation nachschlagen.
+
+\textbf{500 Internal Server Error:} Ein technischer Fehler im Backend ist aufgetreten. Der vollständige Stack-Trace muss in den Logs stehen. Lösung: Logs analysieren, Datenbankverbindung prüfen, ggf. Backend neu starten.
+
+In der Produktion sollten Logs zentral gesammelt werden (z.B. über ELK-Stack oder ähnliche Systeme). Dadurch lassen sich Fehler über mehrere Anfragen zeitlich und sachlich korrelieren, was für die Fehlerbehebung immens hilfreich ist.
 
 
 \section{Datenbank [Timon Schmalzer]}
