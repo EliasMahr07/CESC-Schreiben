@@ -663,7 +663,82 @@ So wird verhindert, dass beliebige externe Webanwendungen ungeprüft Anfragen an
 \subsection{Firebase Firestore [Timon Schmalzer]}
 \setauthor{Timon Schmalzer}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.32\textwidth]{pics/firestore-logo.png}
+    \caption{Firebase-Logo}
+    \label{fig:firestorelogo}
+    \vspace{0.3em}
+
+    {\footnotesize
+    Quelle: \glqq Firebase Logo.svg\grqq, Wikimedia Commons: \url{https://commons.wikimedia.org/wiki/File:Firebase_Logo.svg}. 
+    Lizenzhinweis: PD-textlogo; zusaetzlich markenrechtlich geschuetzt (Google LLC). Aenderungen: keine.
+    }
+\end{figure}
+
 \subsubsection{NoSQL-Konzept und Dokumentstruktur}
+
+Firebase Firestore ist eine cloudbasierte, dokumentenorientierte NoSQL-Datenbank von Google. Im Unterschied zu relationalen Datenbanken werden Daten nicht in starren Tabellenstrukturen gespeichert, sondern in \textbf{Collections} und \textbf{Dokumenten}. Dokumente bestehen aus Schlüssel-Wert-Paaren und können flexibel aufgebaut werden.
+
+Die grundlegende Struktur in Firestore ist hierarchisch:
+
+\begin{itemize}
+    \item \textbf{Collection:} fachliche Gruppierung von Datensätzen
+    \item \textbf{Dokument:} einzelner Datensatz innerhalb einer Collection
+    \item \textbf{Felder:} Werte wie Zeitstempel, Status oder Messdaten
+\end{itemize}
+
+Für die technologische Einordnung sind vor allem folgende Eigenschaften relevant:
+
+\begin{itemize}
+    \item \textbf{Schema-Flexibilität:} Dokumente können bei Bedarf um zusätzliche Felder erweitert werden.
+    \item \textbf{Skalierbarkeit:} Firestore ist als Managed-Service für verteilte Anwendungen ausgelegt.
+    \item \textbf{Echtzeitfähigkeit:} Datenänderungen können über Listener nahezu in Echtzeit an Clients weitergegeben werden.
+    \item \textbf{Plattformintegration:} Es existieren SDKs für Web, Mobile und Server-Anwendungen.
+\end{itemize}
+
+Für CESC passt dieser Ansatz gut, weil unterschiedliche Gerätetypen und Messwerte in einem einheitlichen NoSQL-Modell verwaltet werden können, ohne dass bei jeder kleinen Datenänderung ein starres Schema angepasst werden muss.
+
+Grenzen liegen vor allem bei sehr komplexen relationalen Abfragen (z. B. klassische Mehrfach-Joins), für die relationale Systeme häufig besser geeignet sind. Für die im Projekt benötigte Dokument- und Zustandsdatenhaltung überwiegen jedoch die Vorteile des Firestore-Modells.
+
+Die folgende Abbildung zeigt die grundlegende Struktur von Collections, Dokumenten und Feldern, wie sie typischerweise in Firestore modelliert wird.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pics/firestore-collections-overview.png}
+    \caption{Schematische Struktur von Firestore (Collections, Dokumente, Felder)}
+    \label{fig:firestorestructure}
+    \vspace{0.3em}
+
+    {\footnotesize
+    Quelle: Firebase-Dokumentation (Cloud Firestore): \url{https://firebase.google.com/docs/firestore}. 
+    Referenzgrafik: \url{https://firebase.google.com/static/docs/firestore/images/structure-data.png}. 
+    Lizenzhinweis: Dokumentationsinhalte unter CC BY 4.0, sofern nicht anders angegeben (\url{https://creativecommons.org/licenses/by/4.0/}).
+    Aenderungen: keine.
+    }
+\end{figure}
+
+Auf dieser Basis lässt sich Firestore gut einem relationalen Ansatz gegenüberstellen. Der folgende Kurzvergleich fokussiert auf die für CESC relevanten technischen Unterschiede.
+
+\subsubsection{Kurzvergleich: Relationale Datenbank vs. Firestore}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|p{3.2cm}|p{5cm}|p{5cm}|}
+        \hline
+        \textbf{Kriterium} & \textbf{Relationale Datenbank} & \textbf{Firestore} \\
+        \hline
+        Datenmodell & Tabellen, Zeilen, festes Schema & Collections, Dokumente, flexible Felder \\
+        \hline
+        Skalierung & Oft vertikal; horizontale Skalierung zusaetzlich aufwendig & Managed-Service mit horizontaler Skalierung \\
+        \hline
+        Abfrageprofil & Stark fuer relationale Abfragen und Joins & Stark fuer dokumentorientierte, indexbasierte Abfragen \\
+        \hline
+        Passung fuer CESC & Vorteilhaft bei komplexen, stark relationalen Datenmodellen & Vorteilhaft fuer heterogene IoT-Mess- und Zustandsdaten \\
+        \hline
+    \end{tabular}
+    \caption{Technologischer Vergleich: Relationale Datenbank und Firestore}
+    \label{tab:db-relational-vs-firestore}
+\end{table}
 
 \subsubsection{Collections und Dokumente im Projekt}
 
