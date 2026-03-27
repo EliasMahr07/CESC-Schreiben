@@ -3,7 +3,7 @@
 
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.3]{pics/ContainerNew.png}
+    \includegraphics[width=0.95\textwidth]{pics/ContainerArchitecture.png}
     \caption{Containerarchitektur}
     \label{fig:Containerarchitektur}
 \end{figure}
@@ -13,13 +13,19 @@ Die Containerarchitektur beschreibt den Aufbau und die Organisation der technisc
 
 \subsection{Zentrale Steuereinheit}
 
-Die zentrale Steuerung erfolgt über einen \textbf{Raspberry Pi}, der als Gateway für alle angeschlossenen Sensoren und Aktoren fungiert. Diese Einheit übernimmt folgende Aufgaben:
+Die zentrale Steuerung erfolgt über einen \textbf{Raspberry Pi 5}, der als Edge-Gateway für Sensorik, Aktorik und Cloud-Schnittstelle dient. Auf dem Gerät laufen mehrere getrennte Containerdienste mit klarer Aufgabenverteilung:
 
 \begin{itemize}
-    \item Verwaltung des \textbf{Zigbee-Dongles} über USB
-    \item Kommunikation mit der \textbf{Firebase-Datenbank}
-    \item Über eine SSH-Verbindung kann eine Remote-Verbindung hergestellt werden, um Wartungsarbeiten und Updates durchzuführen.
+    \item \textbf{Zigbee2MQTT}: Übersetzt Zigbee-Gerätedaten in MQTT-Nachrichten und umgekehrt
+    \item \textbf{MQTT-Broker (Mosquitto)}: Lokaler Message-Bus zwischen Diensten und Zigbee2MQTT
+    \item \textbf{mqttListener}: Persistiert Sensorzustände strukturiert in Firestore
+    \item \textbf{actionHandler}: Liest Steuerbefehle aus Firestore und schaltet Aktoren über MQTT
+    \item \textbf{Home Assistant}: Lokale Automatisierung und Visualisierung
 \end{itemize}
+
+Die Broker-Konfiguration ist in \texttt{config.json} zentral definiert (Host \texttt{mosquitto}, Port \texttt{1883}). Dadurch greifen Listener und Action-Handler auf dieselbe Kommunikationsbasis zu. Administration und Wartung des Raspberry Pi erfolgen über SSH-Zugriff, wodurch Updates und Fehleranalyse ohne physischen Zugriff möglich sind.
+
+Die Kommunikation zwischen Feldgeräten und Raspberry Pi erfolgt über ein lokales Zigbee-Mesh. Zigbee wurde im Projekt gewählt, weil das Protokoll auf geringe Leistungsaufnahme, Mesh-Routing und Interoperabilität zwischen Herstellern ausgelegt ist. Diese Eigenschaften sind für batteriebetriebene Sensoren in verteilten Containerinstallationen relevant \cite{csa_zigbee_overview}.
 
 
 \subsection{Sensorik}
@@ -33,7 +39,55 @@ Zur Erfassung der Umgebungsbedingungen im Container sind verschiedene Sensoren i
     \item \textbf{Türkontakt}: Überwacht den Öffnungszustand der Containertür, um Zutritte oder unbefugte Zugriffe zu erkennen.
 \end{itemize}
 
-Die Sensordaten werden fortlaufend über ein drahtloses Zigbee-Netzwerk an den Zigbee-Dongle übermittelt, der über USB mit dem Raspberry Pi verbunden ist. Jeder Sensor sendet ab einem bestimmten Änderungsgrad den aktuellen Messwert inklusive Zeitstempel, sodass eine exakte zeitliche Zuordnung der Messungen möglich ist.
+In der Implementierung sind die Sensoren eindeutig über Prefixe und IDs abgebildet. Beispiele:
+
+\begin{itemize}
+    \item Türkontakt: \texttt{zb\_door\_1}
+    \item Innenklima: \texttt{zb\_th\_inside\_1}
+    \item Außenklima: \texttt{zb\_th\_outside\_1}
+    \item Presence Detector: \texttt{zb\_appearance\_1}
+\end{itemize}
+
+Die Feldzuordnung zwischen MQTT-Payload und Datenbankschema wird in \texttt{config.json} über \texttt{properties} definiert. Beispiele: \texttt{state} $\rightarrow$ \texttt{status}, \texttt{contact} $\rightarrow$ \texttt{contact}, \texttt{temperature} $\rightarrow$ \texttt{temperature}. Dadurch kann ein Sensortyp ohne Codeänderung erweitert werden, solange Prefix und Mapping in der Konfiguration ergänzt werden.
+
+Der \texttt{mqttListener} speichert nicht jede empfangene Nachricht. Stattdessen reduziert ein technischer Filter die Schreiblast:
+
+\begin{itemize}
+    \item Mindestintervall für reguläre Updates: 10 Minuten
+    \item Sofortspeicherung bei Zustandswechseln (Tür/Presence)
+    \item Schwellwerte: 2\,$^{\circ}$C (Temperatur), 5\,\% (Luftfeuchte), 1\,\% (Batterie), 5\,W (Leistung)
+\end{itemize}
+
+Dadurch bleibt die Datenhistorie fachlich aussagekräftig, ohne die Datenbank durch irrelevante Kleinständerungen zu überladen.
+
+\textbf{Beispiel 1: Sensornachricht von Zigbee2MQTT}
+
+\begin{lstlisting}[
+caption={Beispiel fuer Topic und Payload eines Innenklima-Sensors},
+label={lst:mqtt_sensor_example},
+basicstyle=\ttfamily\small
+]
+Topic:
+zigbee2mqtt/zb_th_inside_1
+
+Payload:
+{
+    "temperature": 19.7,
+    "humidity": 46.3,
+    "battery": 91,
+    "linkquality": 126
+}
+\end{lstlisting}
+
+Im gezeigten Beispiel erkennt der \texttt{mqttListener} den Typ \texttt{th-inside} ueber den Prefix \texttt{zb\_th\_inside}. Anschliessend werden die Felder gemaess \texttt{config.json} auf das Datenbankschema gemappt und in \texttt{thInsideSensors} sowie \texttt{latestSensorData} geschrieben, sofern die Filterbedingungen erfuellt sind.
+
+Für die Auswahl von Zigbee gegenüber WLAN und Bluetooth waren im Betrieb drei Kriterien entscheidend:
+
+\begin{itemize}
+    \item \textbf{Energieverbrauch}: Zigbee-Endgeräte sind für lange Batterielaufzeiten konzipiert, wodurch Wartungszyklen der Sensorik reduziert werden \cite{csa_zigbee_overview}.
+    \item \textbf{Netzabdeckung im Containerumfeld}: Durch Mesh-Routing über Router-Knoten (z. B. netzversorgte Steckdosen) bleibt die Kommunikation auch bei baustellentypischen Abschattungen stabil \cite{digi_zigbee_mesh}.
+    \item \textbf{Systemintegration}: Mit Zigbee2MQTT lassen sich Geräte vieler Hersteller in eine einheitliche MQTT-Schnittstelle überführen; dadurch sind die Topics in Home Assistant, Listener und Action-Handler konsistent nutzbar \cite{zigbee2mqtt_docs}.
+\end{itemize}
 
 \subsection{Aktorik und Energieverbraucher}
 
@@ -47,70 +101,267 @@ Im Container sind elektrische Verbraucher installiert, die über Zigbee-Steckdos
 
 Die Steckdosen werden mithilfe des Zigbee-Protokolls gesteuert und ausgelesen. So kann beispielsweise die Heizung nur dann aktiviert werden, wenn der Container genutzt wird oder bestimmte Temperaturwerte unterschritten werden.
 
+Die Aktoren sind in der Konfiguration als \texttt{plug-heating}, \texttt{plug-cooling} und \texttt{plug-light} mit \texttt{controllable=true} modelliert. Der Steuerpfad ist technisch klar definiert:
+
+\begin{enumerate}
+    \item Ein Steuerwunsch wird als Dokument in der Firestore-Collection \texttt{actions} abgelegt.
+    \item Der \texttt{actionHandler} liest neue Dokumente per \texttt{onSnapshot}.
+    \item Nach Validierung (\texttt{containerId}, \texttt{plugType}, \texttt{status}) wird das MQTT-Topic gebildet.
+    \item Topic-Schema: \texttt{zigbee2mqtt/zb\_plug\_<plugType>\_<containerId>/set}
+    \item Payload: \texttt{\{"state":"ON"\}} oder \texttt{\{"state":"OFF"\}}
+    \item Bei erfolgreichem Publish wird das Action-Dokument gelöscht (Delete-on-success).
+\end{enumerate}
+
+Beispiel: Für \texttt{plugType=heating} und \texttt{containerId=1} wird auf \texttt{zigbee2mqtt/zb\_plug\_heating\_1/set} publiziert.
+
+\textbf{Beispiel 2: Action-Dokument und resultierendes MQTT-Kommando}
+
+\begin{lstlisting}[
+caption={Beispiel fuer Firestore-Action und daraus erzeugtes MQTT-Steuerkommando},
+label={lst:action_to_mqtt_example},
+basicstyle=\ttfamily\small
+]
+Firestore-Dokument in actions:
+{
+    "containerId": 1,
+    "plugType": "heating",
+    "status": "ON",
+    "timestamp": "2026-01-27T10:15:00Z"
+}
+
+Erzeugtes Topic:
+zigbee2mqtt/zb_plug_heating_1/set
+
+Erzeugte Payload:
+{"state":"ON"}
+\end{lstlisting}
+
+Nach erfolgreichem Publish löscht der \texttt{actionHandler} das Dokument aus \texttt{actions}. Dadurch wird derselbe Schaltbefehl nicht mehrfach ausgefuehrt.
+
 \subsection{Kamerasystem}
 
-Für die sicherheitsrelevante Überwachung ist eine hochauflösende Kamera installiert. Bild- oder Videodaten können zur späteren Auswertung, für Alarmmeldungen oder zur Fernüberwachung genutzt werden.
+Für die sicherheitsrelevante Überwachung ist eine \textbf{4K-Kamera} installiert. Bild- oder Videodaten können zur späteren Auswertung, für Alarmmeldungen oder zur Fernüberwachung genutzt werden.
+
+Die Kamera ist in der Architektur als eigenständige Sicherheitskomponente zu betrachten und nicht Teil des Zigbee-Datenpfads. Der aktuelle Projektstand nutzt Türkontakt und Presence Detector zur Erkennung sicherheitsrelevanter Ereignisse außerhalb der Betriebszeit. Eine automatische Alarmauslösung ist derzeit noch nicht implementiert; Ereignisse werden protokolliert und können im Dashboard ausgewertet werden.
 
 \subsection{Kommunikation im Container}
 
-Die drahtlose Kommunikation zwischen den Sensoren, Steckdosen und dem Raspberry Pi erfolgt über den \textbf{Zigbee-Dongle}. Das Zigbee-Netzwerk ermöglicht die bidirektionale Kommunikation und stellt sicher, dass alle Geräte im Container zuverlässig verbunden sind.
+Die Kommunikation folgt einem zweistufigen Modell:
+
+\begin{itemize}
+    \item \textbf{Feldebene}: Zigbee zwischen Sensor/Aktor und Dongle
+    \item \textbf{Diensteebene}: MQTT zwischen Zigbee2MQTT, mqttListener, actionHandler und Home Assistant
+\end{itemize}
+
+Wesentliche technische Regel: \texttt{/set}-Topics sind reine Steuerkanäle und werden vom Listener nicht als Messdaten gespeichert. Dadurch bleiben Schreibpfad (Telemetry) und Steuerpfad (Commands) logisch getrennt.
 
 \subsection{Cloud-Anbindung}
 
-Mithilfe der \textbf{Firebase-Datenbank} werden die verarbeiteten Daten an die Cloud übermittelt. Gleichzeitig können aus der Datenbank neue Regeln oder Statusänderungen ausgelesen und auf die Geräte im Container angewendet werden.
+Mithilfe der \textbf{Firebase-Datenbank} werden die verarbeiteten Daten in typgetrennten Collections gespeichert, z. B. \texttt{doorSensors}, \texttt{thInsideSensors}, \texttt{thOutsideSensors}, \texttt{appearanceSensors} sowie die drei Plug-Collections. Zusätzlich wird je Gerät ein aktueller Zustand unter \texttt{latestSensorData} gehalten.
+
+Für den Steuerpfad wird die Collection \texttt{actions} als Befehls-Queue verwendet. Das Backend oder Automatisierungslogik erzeugt dort Schaltbefehle, der Action-Handler führt sie aus und entfernt erfolgreich verarbeitete Einträge. Damit sind Zustandsspeicherung und Befehlsausführung im Datenmodell sauber getrennt.
 
 
 
 \section{Systemarchitektur [Leopold Mistelberger]}
 \setauthor{Elias Mahr}
 
+\subsection{Kontextdiagramm}
+
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.35]{pics/Systhemarchitektur.png}
-    \caption{Systemarchitektur}
+    \includegraphics[width=0.95\textwidth]{pics/ContextDiagram.png}
+    \caption{Kontextdiagramm des Hauptcontainers}
+    \label{fig:kontextdiagramm}
+\end{figure}
+
+Abbildung~\ref{fig:kontextdiagramm} zeigt die Systemgrenze auf Kontextebene: Innerhalb des Containers werden Sensordaten erfasst und über lokale Dienste verarbeitet; außerhalb der Systemgrenze befinden sich externe Benutzer, Cloud-Dienste und übergeordnete Verwaltungsfunktionen. Das Kontextdiagramm dient hier als Einstieg, bevor die konkrete Hardware- und Softwarestruktur detailliert beschrieben wird.
+
+\subsection{Hardware-Komponenten}
+
+Die Hardwareebene umfasst alle physischen Komponenten zur Erfassung und Ausführung im Baustellencontainer:
+
+\begin{enumerate}
+    \item \textbf{Raspberry Pi als Edge-Gateway}: Der Raspberry Pi bündelt Sensor- und Aktordaten, hostet die lokalen Containerdienste und stellt die Schnittstelle zur Cloud dar.
+    \item \textbf{Zigbee-Dongle}: Der USB-Dongle terminiert das Zigbee-Funknetz und reicht Messwerte sowie Steuerbefehle in die lokale MQTT-Welt weiter.
+    \item \textbf{Sensoren}: Innen-/Außentemperatur, Luftfeuchte, Radarsensor und Türkontakt liefern Zustands- und Ereignisdaten.
+    \item \textbf{Aktorik}: Schaltbare Verbraucher (Heizung, Lüftung, Beleuchtung) sind über Zigbee-Plugs eingebunden.
+    \item \textbf{4K-Kamera}: Die Kamera liefert hochdetaillierte Bilddaten für Sicherheits- und Dokumentationszwecke.
+\end{enumerate}
+
+Die im Projekt konkret eingesetzten Komponenten sind:
+
+\begin{itemize}
+    \item \textbf{Sensoren}: Türkontakt (Zigbee), Temperatur-/Feuchtesensor innen (Zigbee), Temperatur-/Feuchtesensor außen (Zigbee), Presence Detector (Zigbee)
+    \item \textbf{Zentrale}: Raspberry Pi 5 mit Gehäuse, Netzteil und USV-Modul (Pufferbatterie)
+    \item \textbf{Funk- und Aktorkomponenten}: Zigbee USB-Dongle sowie Zigbee-Steckdosen zur Schaltung von Heizung, Lüftung und Beleuchtung
+    \item \textbf{Netzwerk und Sicherheit}: Router sowie 4K-Kamera; optional sind Smart-Lock-Varianten (Bluetooth bzw. WLAN/Bluetooth/Matter) evaluierbar
+\end{itemize}
+
+Die Entscheidung für Zigbee ist hier architekturrelevant: Das Protokoll ist für Low-Power-IoT und Mesh-Topologien ausgelegt und reduziert dadurch den Wartungsaufwand bei batteriebetriebener Sensorik, während gleichzeitig Reichweite und Robustheit im Containerverbund verbessert werden \cite{csa_zigbee_overview}.
+
+\subsection{Software-Komponenten}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{pics/Systemarchitecture.png}
+    \caption{Systemarchitektur ohne Deployment-Sicht}
     \label{fig:systemarchitektur}
 \end{figure}
 
-
-Die Systemarchitektur des CESC-Projekts beschreibt die logische und funktionale Organisation aller Systemkomponenten, sowohl innerhalb der Baustellencontainer als auch auf Server- und Cloud-Ebene. Ziel ist es, eine zuverlässige Erfassung, Verarbeitung, Speicherung und Visualisierung aller Sensordaten zu gewährleisten sowie die steuerbare Interaktion mit Aktoren (Heizung, Lüftung, Beleuchtung) zu ermöglichen.
-
-\subsection{Überblick über das Gesamtsystem}
-
-Abbildung~\ref{fig:systemarchitektur} zeigt die Gesamtarchitektur. Das System lässt sich in vier Hauptbereiche gliedern:
+Abbildung~\ref{fig:systemarchitektur} zeigt die logische Softwarestruktur ohne Infrastruktur-Deployment. Die Komponenten lassen sich in drei Schichten gliedern:
 
 \begin{enumerate}
-    \item \textbf{Container-Hardware}: Enthält Sensoren (Innen- und Außentemperatur, Luftfeuchtigkeit, Radar, Türkontakt), Aktoren (Heizung, Lüftung, Beleuchtung) und Kameras zur Sicherheitsüberwachung. Ein \textbf{Raspberry Pi} fungiert als zentrale Steuerungseinheit und Gateway.
-    
-    \item \textbf{Lokale Software-Container auf dem Raspberry Pi}: Docker-Container für Zigbee2MQTT, MQTT Broker, mqttListener.js, actionHandler.js und Home Assistant. Diese Komponenten übernehmen die lokale Datenerfassung, Vorverarbeitung, Steuerung und Kommunikation.
-    
-    \item \textbf{Cloud-Infrastruktur}: Eine Firebase-Datenbank speichert Sensordaten, Aktorenstatus und Regeln. Sie dient sowohl der langfristigen Speicherung als auch der Bereitstellung von Informationen für die Webanwendung.
-    
-    \item \textbf{Webanwendung und Server}: Angular-Frontend zur Visualisierung und Steuerung, C\#-Backend für REST-API und Business-Logik. Der Backend-Server kommuniziert mit Firebase und liefert Daten an das Frontend, während ein Nginx-Reverse-Proxy die HTTPS-Anfragen der Benutzer routet.
+    \item \textbf{Edge-Schicht (Raspberry Pi)}: Zigbee2MQTT, MQTT-Broker, Home Assistant, mqttListener.js und actionHandler.js.
+    \item \textbf{Cloud- und Persistenzschicht}: Firebase für Telemetrie, Zustände, Regeln und Ereignisprotokolle.
+    \item \textbf{Anwendungsschicht}: Angular-Frontend, C\#-Backend und Nginx als Reverse Proxy.
 \end{enumerate}
 
-\subsection{Funktionsweise des Gesamtsystems}
+\subsubsection{Datenfluss und Steuerpfad}
 
 \begin{itemize}
-    \item Sensordaten werden in Echtzeit erfasst und bei signifikanten Änderungen über Zigbee an den Raspberry Pi gesendet.
-    \item Zigbee2MQTT wandelt die Daten in MQTT-Nachrichten um und leitet sie an den lokalen MQTT-Broker weiter.
-    \item mqttListener.js abonniert die MQTT-Topics, verarbeitet die Nachrichten und speichert die Daten in Firebase.
-    \item actionHandler.js liest die Daten aus Firebase, prüft Regeln und sendet Steuerbefehle zurück an die Aktoren über den MQTT-Broker.
-    \item Das Frontend visualisiert Sensordaten, Alarmmeldungen und Aktorstatus und ermöglicht die manuelle Steuerung über REST-API-Anfragen an das Backend.
+    \item Sensordaten werden laufend erfasst und bei signifikanten Änderungen über Zigbee an den Raspberry Pi gesendet.
+    \item Zigbee2MQTT transformiert proprietäre Zigbee-Frames in MQTT-Topics, sodass alle Geräte in einem einheitlichen Publish/Subscribe-Modell verfügbar sind \cite{zigbee2mqtt_usage}.
+    \item mqttListener.js persistiert relevante Telemetrie in Firebase.
+    \item actionHandler.js evaluiert Regeln und erzeugt Steuernachrichten für Aktoren.
+    \item Home Assistant konsumiert dieselben Entitäten und kann zusätzlich Automatisierungen auf Ereignisbasis ausführen.
+    \item Frontend und Backend greifen über REST auf konsolidierte Daten zu und ermöglichen manuelle Eingriffe.
 \end{itemize}
 
-\subsection{Vorteile dieser Architektur}
+\subsubsection{Eigene Sektion: mqttListener und actionHandler}
+
+Die beiden Node.js-Dienste \texttt{mqttListener} und \texttt{actionHandler} bilden die zentrale Laufzeitlogik auf dem Raspberry Pi. Beide Dienste laufen als Container und sind auf unterschiedliche Aufgaben spezialisiert. Die Implementierung basiert auf dem npm-Paket \texttt{mqtt} für Broker-Kommunikation, \texttt{firebase-admin} für Firestore-Zugriff (im Listener) sowie einem gemeinsamen Konfigurationsmodell über \texttt{config.json}.
+
+\textbf{Konfigurationsmodell (config.json)}
+
+
+Die \texttt{config.json} ist das zentrale Bindeglied zwischen MQTT-Topics, internen Sensortypen und Firebase-Collections. Sie besteht aus vier funktionalen Blöcken:
 
 \begin{itemize}
-    \item \textbf{Skalierbarkeit}: Mehrere Container können unabhängig voneinander betrieben werden. Jeder Container hat seine lokale Verarbeitungseinheit.
-    \item \textbf{Modularität}: Docker-Container trennen Funktionen klar, wodurch Updates einzelner Komponenten möglich sind, ohne das Gesamtsystem zu unterbrechen.
-    \item \textbf{Zuverlässigkeit}: Lokale Verarbeitung auf dem Raspberry Pi sorgt dafür, dass Aktionen (z. B. Heizung einschalten) auch bei einem Internet Ausfall ausgeführt werden können.
-    \item \textbf{Sicherheit}: SSH-Zugriff auf den Raspberry Pi und gesicherte MQTT-Verbindungen stellen den Schutz vor unbefugtem Zugriff sicher.
+    \item \textbf{mqtt}: Broker-Host, Port und Credentials (im gezeigten Stand \texttt{mosquitto} auf Port \texttt{1883})
+    \item \textbf{sensors}: Prefix-Definition und Feld-Mapping je Sensortyp
+    \item \textbf{collections}: Zuordnung jedes Sensortyps auf eine konkrete Firestore-Collection
+    \item \textbf{devices}: Geräteinventar mit Name, Typ und Containerzuordnung
 \end{itemize}
+
+Die Prefixe (z. B. \texttt{zb\_door}, \texttt{zb\_th\_inside}, \texttt{zb\_plug\_heating}) werden vom \texttt{mqttListener} zur Sensortyp-Erkennung verwendet. Das Feld-Mapping in \texttt{properties} übersetzt MQTT-Payload-Felder in das Datenbankschema, beispielsweise \texttt{state} $\rightarrow$ \texttt{status} bei Steckdosen.
+
+Über den Block \texttt{collections} werden Messdaten typabhängig in getrennte Bereiche geschrieben (z. B. \texttt{doorSensors}, \texttt{thInsideSensors}, \texttt{plugHeatingSensors}). Dadurch bleibt die Datenstruktur fachlich sauber getrennt und Auswertungen können je Sensorklasse ohne zusätzliche Laufzeitfilter durchgeführt werden.
+
+Der Block \texttt{devices} beschreibt zusätzlich die konkreten Instanzen (z. B. \texttt{zb\_door\_1}, \texttt{zb\_plug\_light\_1}) und markiert steuerbare Aktoren mit \texttt{controllable=true}. Damit ist die Konfiguration nicht nur technisch, sondern auch inventarbezogen dokumentiert.
+
+\textbf{mqttListener (Ingestion und Dateneinsparung)}
+
+
+Der \texttt{mqttListener} abonniert das Haupttopic \texttt{<mqtt.topic>/\#} und verarbeitet eingehende Zigbee2MQTT-Nachrichten. \texttt{/set}-Topics werden bewusst ignoriert, damit reine Steuerkommandos nicht als Sensormessungen gespeichert werden. Anschließend wird der Sensortyp über Prefix-Matching auf Basis der Konfiguration ermittelt.
+
+Intern verwendet der Dienst mehrere In-Memory-Datenstrukturen:
+
+\begin{itemize}
+    \item \texttt{lastValues} als Cache des letzten bekannten Zustands je Sensor
+    \item \texttt{lastUpdateTimes} zur zeitlichen Drosselung von Schreibvorgängen
+    \item \texttt{lastStatusChangeTime} zur Entprellung häufiger ON/OFF-Wechsel bei Steckdosen
+\end{itemize}
+
+Für die Speicherung wird ein mehrstufiges Filterverfahren verwendet, um unnötige Datenbankeinträge zu vermeiden:
+
+\begin{itemize}
+    \item \textbf{Zeitfilter}: Standardmäßig wird nur in festen Zeitabständen gespeichert (aktuell 10 Minuten).
+    \item \textbf{Ereignisfilter für Zustandswechsel}: Tür- und Presence-Sensoren werden bei echter Statusänderung sofort gespeichert.
+    \item \textbf{Schwellwerte}: Temperatur, Luftfeuchte, Batteriestand und Steckdosenleistung werden nur bei signifikanten Änderungen geschrieben.
+    \item \textbf{Entprellung bei Steckdosen}: Sehr schnelle ON/OFF-Wechsel werden über ein Mindestintervall gebremst.
+\end{itemize}
+
+Die Schwellwerte sind im Code explizit als technische Parameter hinterlegt (Temperatur 2\,$^{\circ}$C, Luftfeuchte 5\,\%, Batterie 1\,\%, Leistung 5\,W) und können zentral angepasst werden. Werden die Bedingungen erfüllt, schreibt der Dienst die Daten sowohl in die fachliche Ziel-Collection als auch in \texttt{latestSensorData} als aktuelle Sicht. Dadurch sind sowohl Historie als auch aktueller Zustand verfügbar.
+
+Zusätzlich wird die \texttt{containerId} aus der Sensor-ID extrahiert und gemeinsam mit \texttt{sensorId}, gemappten Messfeldern und serverseitigem Zeitstempel gespeichert. Diese Normalisierung vereinfacht Auswertungen im Backend und reduziert Parser-Logik im Frontend.
+
+\textbf{actionHandler (Steuerpfad für Aktoren)}
+
+
+Der \texttt{actionHandler} ist der direkte Steuerdienst für die Steckdosen. Er liest neue Befehle aus der Firestore-Collection \texttt{actions} und übersetzt diese in MQTT-Kommandos für Zigbee2MQTT. Technisch erfolgt das über einen permanenten Snapshot-Listener (\texttt{onSnapshot}) auf \texttt{actions} mit Filter auf reale Dokumente (Dummy-Eintrag wird ausgeschlossen).
+
+Die Kette \textbf{Firestore $\rightarrow$ MQTT $\rightarrow$ Steckdose} läuft in folgenden Schritten ab:
+
+\begin{enumerate}
+    \item In \texttt{actions} wird ein neues Dokument angelegt (\texttt{change.type = added}).
+    \item Der \texttt{actionHandler} liest \texttt{actionId} und Nutzdaten aus dem Dokument.
+    \item Die Nutzdaten werden validiert (Pflichtfelder und erlaubte Werte).
+    \item Aus \texttt{plugType} und \texttt{containerId} wird das Zieltopic berechnet.
+    \item Das Kommando wird als JSON-Payload via MQTT publiziert.
+    \item Bei erfolgreichem Publish wird das Action-Dokument gelöscht, damit derselbe Befehl nicht erneut ausgeführt wird.
+\end{enumerate}
+
+Der Ablauf ist dabei strikt validiert:
+
+\begin{itemize}
+    \item Pflichtfelder: \texttt{containerId}, \texttt{plugType}, \texttt{status}
+    \item Erlaubte Statuswerte: \texttt{ON} oder \texttt{OFF}
+    \item Erlaubte Plug-Typen: \texttt{light}, \texttt{heating}, \texttt{cooling}
+\end{itemize}
+
+Das MQTT-Topic wird dynamisch nach dem Schema \texttt{zigbee2mqtt/zb\_plug\_<plugType>\_<containerId>/set} aufgebaut. Als Payload wird \texttt{\{"state":"ON|OFF"\}} gesendet. Beispiel: \texttt{plugType=heating}, \texttt{containerId=1} ergibt \texttt{zigbee2mqtt/zb\_plug\_heating\_1/set}.
+
+Wichtig für die Betriebssicherheit: Ungültige Actions (fehlende Felder, falscher Status oder unbekannter Plug-Typ) werden verworfen und aus \texttt{actions} entfernt. Bei MQTT-Publish-Fehlern wird die Action hingegen nicht als erfolgreich behandelt; damit bleibt der Fehlerzustand nachvollziehbar und kann erneut verarbeitet oder manuell geprüft werden.
+
+Die Service-Logik folgt damit dem Muster \textit{command queue in Firestore} $\rightarrow$ \textit{validiertes MQTT-Command} $\rightarrow$ \textit{Delete-on-success}. Dieses Muster ist für die gewählte Architektur zweckmäßig, da die auszuführenden Steuerbefehle explizit nachvollziehbar sind und nach erfolgreicher Ausführung nicht in der Queue verbleiben.
+
+\textbf{Robustheit und Laufzeitverhalten}
+
+
+Beide Dienste behandeln Laufzeitfehler aktiv. Der \texttt{actionHandler} besitzt eine Reconnect-Logik mit zeitverzögertem Neuverbindungsversuch (5 Sekunden) bei MQTT-Fehlern oder Verbindungsabbruch. Der \texttt{mqttListener} behandelt Parser- und MQTT-Fehler über zentrale Event-Handler und setzt die Verarbeitung für nachfolgende Nachrichten fort.
+
+Zusätzlich unterstützen beide Services einen Graceful Shutdown über \texttt{SIGINT}/\texttt{SIGTERM}, wodurch offene MQTT-Verbindungen sauber geschlossen werden. Dadurch sinkt das Risiko von inkonsistenten Verbindungszuständen bei Container-Neustarts oder Deployments.
+
+\subsubsection{Automatisierungen direkt in Home Assistant}
+
+Home Assistant wird nicht nur zur Visualisierung eingesetzt, sondern als lokale Automatisierungs-Engine. Automationen bestehen aus Trigger, Bedingungen und Aktionen \cite{ha_automation_basics}. Für das CESC-Szenario sind folgende Automatisierungen direkt in Home Assistant umsetzbar:
+
+\begin{itemize}
+    \item \textbf{Temperaturregelung}: Bei Unterschreitung eines Sollwerts wird die Heizung automatisch aktiviert, bei Überschreitung deaktiviert.
+    \item \textbf{Präsenzabhängige Lüftung}: Lüftung wird nur bei erkannter Anwesenheit und zu hoher Luftfeuchtigkeit aktiviert.
+    \item \textbf{Einbruchserkennung außerhalb Betriebszeit}: Bei Kombination aus Türkontakt und Bewegung außerhalb der Betriebszeit wird derzeit ein sicherheitsrelevantes Ereignis protokolliert; eine aktive Alarmierung (z. B. Push/Sirene) ist im aktuellen Stand noch nicht implementiert.
+    \item \textbf{Licht-Automation}: Bei Präsenz und zu geringer Umgebungshelligkeit wird Beleuchtung eingeschaltet, sonst ausgeschaltet.
+\end{itemize}
+
+Ein konkretes Beispiel für eine Home-Assistant-Automation (Temperaturregelung) ist in Listing~\ref{lst:ha_automation_temp} dargestellt:
+
+\begin{lstlisting}[
+caption={Home Assistant Automation: Heizung bei niedriger Innentemperatur},
+label={lst:ha_automation_temp},
+basicstyle=\ttfamily\small
+]
+alias: Heizung bei Kaltstart aktivieren
+trigger:
+  - platform: numeric_state
+        entity_id: sensor.zb_th_inside_1_temperature
+    below: 18
+condition:
+  - condition: state
+        entity_id: binary_sensor.zb_appearance_1_presence
+    state: "on"
+action:
+  - service: switch.turn_on
+    target:
+            entity_id: switch.zb_plug_heating_1
+mode: single
+\end{lstlisting}
+
+Die Trigger- und Condition-Modelle entsprechen der offiziellen Home-Assistant-Spezifikation und sind dadurch direkt wartbar und versionierbar \cite{ha_automation_trigger}.
 
 
 
 
 \section{Deployment}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{pics/SystemarchitectureWithDeployment.png}
+    \caption{Systemarchitektur mit Deployment-Sicht}
+    \label{fig:systemarchitektur_deployment}
+\end{figure}
+
+Abbildung~\ref{fig:systemarchitektur_deployment} ergänzt die logische Sicht aus Abbildung~\ref{fig:systemarchitektur} um die physische Verteilung der Komponenten. Sichtbar ist, welche Container auf dem Raspberry Pi und welche Dienste auf dem Server laufen sowie aus welcher Registry die Images bezogen werden.
 
 \subsection{Build-Prozess}
 
@@ -120,18 +371,54 @@ Im Rahmen des CESC-Projekts wird dieser Prozess vollständig automatisiert durch
 
 \subsubsection{Continuous Integration mit GitHub Actions}
 
-Zur Automatisierung des Build-Prozesses wird eine Continuous-Integration-Pipeline eingesetzt. Diese wird über GitHub Actions realisiert und bei jeder Änderung im Hauptbranch (\texttt{main}) ausgelöst.
+Zur Automatisierung des Build-Prozesses wird eine Continuous-Integration-Pipeline eingesetzt. Diese wird über GitHub Actions realisiert und bei jeder Änderung im Hauptbranch (\texttt{main}) ausgelöst \cite{github_actions_overview}.
 
-Ein typischer Trigger ist:
+Im Projekt sind drei konkrete Workflow-Dateien definiert:
+
+\begin{itemize}
+        \item \textbf{Action Handler Workflow}: baut und veröffentlicht das Image \texttt{action-handler:latest}
+        \item \textbf{Frontend/Backend Workflow}: baut und veröffentlicht \texttt{cesc-app-backend:latest} und \texttt{cesc-app-frontend:latest}
+        \item \textbf{MQTT Listener Workflow}: baut und veröffentlicht \texttt{mqtt-listener:latest}
+\end{itemize}
+
+Die Trigger sind jeweils pfadbasiert, damit nur bei relevanten Änderungen ein Build startet.
+
+\textbf{Trigger: Action Handler}
+
 
 \begin{verbatim}
 on:
   push:
     branches: [ main ]
     paths:
-      - 'raspi/**'
+            - 'raspi/actionHandler.js'
+            - 'raspi/firebase.js'
+            - 'raspi/Dockerfile.actionHandler'
+            - '.github/workflows/action-handler.yaml'
 \end{verbatim}
-\label{lst:ci_trigger}
+
+\textbf{Trigger: Frontend und Backend}
+
+
+\begin{verbatim}
+on:
+    push:
+        branches: [ main ]
+        paths:
+            - 'cesc-app/**'
+\end{verbatim}
+
+\textbf{Trigger: MQTT Listener}
+
+
+\begin{verbatim}
+on:
+    push:
+        branches: [ main ]
+        paths:
+            - 'raspi/**'
+            - '.github/workflows/mqtt-listener.yaml'
+\end{verbatim}
 
 Durch die Einschränkung auf bestimmte Pfade wird sichergestellt, dass nur relevante Änderungen einen Build-Prozess auslösen. Dies reduziert unnötige Builds und verbessert die Effizienz der Pipeline.
 
@@ -144,12 +431,33 @@ Der Build-Prozess besteht aus mehreren aufeinanderfolgenden Schritten:
     
     \item \textbf{Authentifizierung}: Anmeldung bei der Container Registry, um Images speichern zu können.
     
-    \item \textbf{Konfigurationsgenerierung}: Sensible Konfigurationsdateien werden zur Laufzeit aus sicheren Variablen (Secrets) erzeugt.
+        \item \textbf{Konfigurationsgenerierung}: Sensible Konfigurationsdateien werden zur Laufzeit aus sicheren Variablen (Secrets) erzeugt. Verwendet werden dabei \texttt{RASPI\_CONFIG\_JSON}, \texttt{FIREBASE\_CREDENTIALS\_JSON} und \texttt{ENVIRONMENT}.
     
     \item \textbf{Image-Build}: Erstellung eines Docker-Images basierend auf einem Dockerfile.
     
     \item \textbf{Image-Push}: Hochladen des fertigen Images in die Container Registry.
 \end{enumerate}
+
+Für den Action Handler und den MQTT Listener wird zusätzlich Docker Buildx verwendet, um Multi-Arch-Images für \texttt{linux/amd64} und \texttt{linux/arm64} zu veröffentlichen. Dadurch können dieselben Images sowohl auf klassischen Servern als auch auf ARM-basierten Zielsystemen eingesetzt werden.
+
+Der Frontend/Backend-Workflow arbeitet mit zwei getrennten Builds. Vor dem Backend-Build wird \texttt{firebase-credentials.json} aus einem Secret geschrieben und nach dem Push wieder gelöscht. Für das Frontend werden \texttt{environment.interface.ts}, \texttt{environment.ts} und \texttt{environment.prod.ts} temporär erzeugt, im Build verwendet und anschließend entfernt.
+
+\subsubsection{Abgrenzung: Build/Push statt Test-Pipeline}
+
+Die aktuellen Workflows sind bewusst als Build- und Deployment-Workflows ausgelegt. Automatisierte Test-Stufen (z. B. Unit-Tests, Integrationstests, Linting als Quality Gate) sind im aktuellen Stand noch nicht integriert. Der Fokus liegt derzeit auf reproduzierbarem Container-Build und schneller Bereitstellung neuer Versionen.
+
+\subsection{Rollout auf Zielsysteme}
+
+Nach dem Push in die Registry werden die Container auf den Zielsystemen aktualisiert. Der technische Ablauf ist deterministisch und kann auf Raspberry Pi und Server identisch ausgeführt werden:
+
+\begin{enumerate}
+    \item \textbf{Image-Pull}: Abruf der neuen Version aus \texttt{ghcr.io}.
+    \item \textbf{Container-Neustart}: Stoppen des alten Containers, Start der neuen Version.
+    \item \textbf{Health-Prüfung}: Prüfung, ob HTTP-Endpunkte bzw. MQTT-Verbindungen verfügbar sind.
+    \item \textbf{Rollback bei Fehler}: Falls Health-Checks fehlschlagen, Rückfall auf das letzte stabile Image-Tag.
+\end{enumerate}
+
+Dieses Vorgehen reduziert Downtime und macht den Deploymentstatus reproduzierbar prüfbar. Für Frontend und Backend erfolgt das Deployment über die neu gebauten Images aus \texttt{ghcr.io}; für die Raspberry-Pi-Dienste analog über die Images von Action Handler und MQTT Listener.
 
 \subsubsection{Verwendung von Secrets}
 
@@ -191,6 +499,7 @@ Der automatisierte Build-Prozess bietet mehrere Vorteile:
     \item Reduzierung manueller Fehler
     \item Schnelle Bereitstellung neuer Versionen
     \item Zentrale Verwaltung aller Softwarekomponenten
+    \item Multi-Arch-Bereitstellung für unterschiedliche Zielplattformen
 \end{itemize}
 
 
