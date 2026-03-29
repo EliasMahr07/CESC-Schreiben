@@ -1,5 +1,5 @@
 \section{Containerarchitektur [Leopold Mistelberger]}
-\setauthor{Elias Mahr}
+\setauthor{Leopold Mistelberger}
 
 \begin{figure}[H]
     \centering
@@ -10,6 +10,29 @@
 
 
 Die Containerarchitektur beschreibt den Aufbau und die Organisation der technischen Komponenten eines Baustellencontainers.
+
+\subsection{Physischer Prototypaufbau}
+
+Zur praktischen Validierung der Containerarchitektur wurde ein physischer Prototyp im Maßstab 1:7 aufgebaut. Der mechanische Aufbau erfolgte mit Bosch-Profilen als tragende Struktur. Dadurch konnte die spätere Positionierung von Sensorik, Aktorik und Verkabelung realitätsnah getestet werden, ohne direkt in voller Containergröße arbeiten zu müssen.
+
+Ein zentraler Teil der Umsetzung war die mechanische Eigenfertigung: Für mehrere Verbindungspunkte wurden die Gewinde im Team selbst hergestellt. Dadurch war es möglich, die Halterungen passgenau für die geplanten Komponenten auszuführen und den Aufbau schrittweise zu optimieren.
+
+Als Verkleidungs- und Sichtmaterial wurde Plexiglas verwendet. Das hatte zwei technische Vorteile:
+
+\begin{itemize}
+    \item Sichtkontrolle der internen Verdrahtung und der Einbaupositionen während der Testphase
+    \item Mechanischer Schutz der Komponenten bei gleichzeitig geringem Gewicht
+\end{itemize}
+
+Der Prototyp diente nicht nur als Demonstrationsmodell, sondern als Entwicklungswerkzeug für folgende Fragestellungen:
+
+\begin{itemize}
+    \item Sind Sensorpositionen (Türkontakt, Presence, Temperatur innen/außen) in der gewählten Anordnung sinnvoll?
+    \item Sind Aktoren und Verkabelung wartungsfreundlich erreichbar?
+    \item Ist die Trennung zwischen Energiepfad (Steckdosen/Aktoren) und Datenpfad (Zigbee/MQTT) im Aufbau nachvollziehbar und reproduzierbar?
+\end{itemize}
+
+Damit ist der Prototypaufbau in der Diplomarbeit fachlich relevant, weil er die technische Umsetzbarkeit der Architektur nachweist und die Grundlage für spätere Skalierung auf reale Container bildet.
 
 \subsection{Zentrale Steuereinheit}
 
@@ -62,11 +85,7 @@ Dadurch bleibt die Datenhistorie fachlich aussagekräftig, ohne die Datenbank du
 
 \textbf{Beispiel 1: Sensornachricht von Zigbee2MQTT}
 
-\begin{lstlisting}[
-caption={Beispiel fuer Topic und Payload eines Innenklima-Sensors},
-label={lst:mqtt_sensor_example},
-basicstyle=\ttfamily\small
-]
+\begin{lstlisting}[language=bash,caption={Beispiel für Topic und Payload eines Innenklima-Sensors},label={lst:mqtt_sensor_example},basicstyle=\ttfamily\small]
 Topic:
 zigbee2mqtt/zb_th_inside_1
 
@@ -79,7 +98,7 @@ Payload:
 }
 \end{lstlisting}
 
-Im gezeigten Beispiel erkennt der \texttt{mqttListener} den Typ \texttt{th-inside} ueber den Prefix \texttt{zb\_th\_inside}. Anschliessend werden die Felder gemaess \texttt{config.json} auf das Datenbankschema gemappt und in \texttt{thInsideSensors} sowie \texttt{latestSensorData} geschrieben, sofern die Filterbedingungen erfuellt sind.
+Im gezeigten Beispiel erkennt der \texttt{mqttListener} den Typ \texttt{th-inside} über den Prefix \texttt{zb\_th\_inside}. Anschließend werden die Felder gemäß \texttt{config.json} auf das Datenbankschema gemappt und in \texttt{thInsideSensors} sowie \texttt{latestSensorData} geschrieben, sofern die Filterbedingungen erfüllt sind.
 
 Für die Auswahl von Zigbee gegenüber WLAN und Bluetooth waren im Betrieb drei Kriterien entscheidend:
 
@@ -116,11 +135,7 @@ Beispiel: Für \texttt{plugType=heating} und \texttt{containerId=1} wird auf \te
 
 \textbf{Beispiel 2: Action-Dokument und resultierendes MQTT-Kommando}
 
-\begin{lstlisting}[
-caption={Beispiel fuer Firestore-Action und daraus erzeugtes MQTT-Steuerkommando},
-label={lst:action_to_mqtt_example},
-basicstyle=\ttfamily\small
-]
+\begin{lstlisting}[language=bash,caption={Beispiel für Firestore-Action und daraus erzeugtes MQTT-Steuerkommando},label={lst:action_to_mqtt_example},basicstyle=\ttfamily\small]
 Firestore-Dokument in actions:
 {
     "containerId": 1,
@@ -164,7 +179,7 @@ Für den Steuerpfad wird die Collection \texttt{actions} als Befehls-Queue verwe
 
 
 \section{Systemarchitektur [Leopold Mistelberger]}
-\setauthor{Elias Mahr}
+\setauthor{Leopold Mistelberger}
 
 \subsection{Kontextdiagramm}
 
@@ -228,6 +243,214 @@ Abbildung~\ref{fig:systemarchitektur} zeigt die logische Softwarestruktur ohne I
     \item Frontend und Backend greifen über REST auf konsolidierte Daten zu und ermöglichen manuelle Eingriffe.
 \end{itemize}
 
+\subsubsection{MQTT-Broker im technischen Detail}
+
+Der MQTT-Broker bildet den zentralen Nachrichtenbus zwischen Zigbee2MQTT, \texttt{mqttListener}, \texttt{actionHandler} und Home Assistant. In der Laufzeitarchitektur gibt es damit genau einen Punkt, an dem Zustandsmeldungen und Steuerbefehle zusammenlaufen. Für den Betrieb ist der Broker deshalb sowohl funktional als auch sicherheitstechnisch kritisch.
+
+\textbf{Broker-Konfiguration und Laufzeitmodell}
+
+Im Projekt wird Mosquitto als lokaler Broker eingesetzt. Die Clients verbinden sich im internen Netz gegen den Hostnamen \texttt{mosquitto} auf Port \texttt{1883}. Dieser Endpunkt ist in \texttt{config.json} der Node.js-Dienste hinterlegt und wird dadurch konsistent von Listener und Action-Handler genutzt.
+
+Der Broker läuft containerisiert und wird über Docker automatisch neu gestartet. Dadurch wird nach Neustarts oder kurzzeitigen Fehlern kein manueller Eingriff für die Wiederverfügbarkeit benötigt.
+
+Ein kompaktes, praxisnahes Beispiel für zentrale Broker-Parameter ist:
+
+\begin{lstlisting}[language=bash,caption={Beispielhafter Mosquitto-Basissatz für den Containerbetrieb},label={lst:mosquitto_basic_config},basicstyle=\ttfamily\small]
+listener 1883
+allow_anonymous false
+persistence true
+persistence_location /mosquitto/data/
+log_dest stdout
+\end{lstlisting}
+
+\textbf{Topic-Struktur und Trennung der Datenpfade}
+
+Die Topic-Struktur trennt Messdaten und Steuerbefehle klar:
+
+\begin{itemize}
+    \item \textbf{Telemetriepfad}: \texttt{zigbee2mqtt/<deviceId>}
+    \item \textbf{Steuerpfad}: \texttt{zigbee2mqtt/<deviceId>/set}
+\end{itemize}
+
+Beispiel aus der Umsetzung:
+
+\begin{itemize}
+    \item Sensordaten innen: \texttt{zigbee2mqtt/zb\_th\_inside\_1}
+    \item Steckdosensteuerung Heizung: \texttt{zigbee2mqtt/zb\_plug\_heating\_1/set}
+\end{itemize}
+
+Der \texttt{mqttListener} verarbeitet ausschließlich den Telemetriepfad. \texttt{/set}-Topics werden absichtlich ignoriert, damit Steuernachrichten nicht als Messwerte in Firestore landen.
+
+\textbf{QoS-Strategie}
+
+Für den Betrieb wurde eine pragmatische QoS-Strategie gewählt. Im lokalen Netz steht niedrige Latenz bei ausreichender Zuverlässigkeit im Vordergrund:
+
+\begin{itemize}
+    \item \textbf{Sensordaten}: QoS 0 oder QoS 1 je nach Gerätetreiber in Zigbee2MQTT
+    \item \textbf{Steuerbefehle}: bevorzugt QoS 1, damit Zustellversuche bestätigt werden
+\end{itemize}
+
+Technischer Hintergrund: QoS 2 wurde nicht als Standard genutzt, da der zusätzliche Protokolloverhead im lokalen Edge-Szenario keinen proportionalen Mehrwert gegenüber QoS 1 liefert.
+
+\textbf{Retain-Strategie}
+
+Retained Messages werden gezielt eingesetzt und nicht global für alle Topics aktiviert.
+
+\begin{itemize}
+    \item Für volatile Sensordaten ist \textbf{kein dauerhaftes Retain} sinnvoll, weil veraltete Zustände beim Reconnect sonst als aktuell interpretiert werden könnten.
+    \item Für definierte Statuskanäle kann Retain sinnvoll sein, wenn ein neuer Subscriber unmittelbar den letzten bekannten Zustand benötigt.
+\end{itemize}
+
+Damit wird vermieden, dass historische Schaltzustände unbeabsichtigt in neue Laufzeitsituationen übernommen werden.
+
+\textbf{Last-Will and Testament (LWT)}
+
+Für robuste Fehlererkennung unterstützt MQTT das Last-Will-Prinzip. Fällt ein Client unerwartet aus, publiziert der Broker automatisch den vordefinierten Offline-Status.
+
+Beispielmuster:
+
+\begin{lstlisting}[language=bash,caption={Typisches LWT-Muster für Dienststatus},label={lst:mqtt_lwt_pattern},basicstyle=\ttfamily\small]
+Status-Topic: cesc/status/mqtt-listener
+Online-Payload: {"state":"online"}
+LWT-Payload:    {"state":"offline"}
+\end{lstlisting}
+
+Dieses Muster ist insbesondere für Betriebsüberwachung hilfreich, weil Ausfälle sofort als Zustandsänderung sichtbar werden.
+
+\textbf{Authentifizierung}
+
+Der Broker wird nicht anonym betrieben. Clients authentifizieren sich über Benutzername/Passwort, die in den jeweiligen Diensten aus der Konfiguration geladen werden. Damit wird verhindert, dass beliebige Teilnehmer im Netz ungeprüft publishen oder subscriben.
+
+Zusätzlich gilt im Projektkontext:
+
+\begin{itemize}
+    \item Zugangsdaten werden nicht im Quellcode gespeichert
+    \item Weitergabe der Konfiguration erfolgt kontrolliert über Deployment/Secrets
+    \item Zugriff auf den Broker-Port nur aus dem vorgesehenen Segment
+\end{itemize}
+
+\textbf{Mögliche ACL-Struktur}
+
+Für den produktiven Ausbau ist eine topic-basierte ACL-Struktur vorgesehen, um Schreib- und Leserechte je Dienst präzise zu trennen. Ein mögliches Modell:
+
+\begin{itemize}
+    \item \texttt{mqtt-listener}: darf Telemetrie lesen, aber keine Schaltbefehle senden
+    \item \texttt{action-handler}: darf \texttt{/set}-Topics schreiben
+    \item \texttt{home-assistant}: darf definierte Topics lesen und in freigegebenen Bereichen schreiben
+\end{itemize}
+
+Beispielhaft als ACL-Regeln:
+
+\begin{lstlisting}[language=bash,caption={Beispiel einer topic-basierten ACL-Trennung},label={lst:mqtt_acl_example},basicstyle=\ttfamily\small]
+user mqtt-listener
+topic read zigbee2mqtt/#
+topic deny zigbee2mqtt/+/set
+
+user action-handler
+topic write zigbee2mqtt/+/set
+topic read cesc/status/#
+\end{lstlisting}
+
+\textbf{Fehlerfälle und Recovery}
+
+Im Betrieb wurden folgende Fehlerklassen als relevant betrachtet:
+
+\begin{enumerate}
+    \item \textbf{Broker-Neustart}: Clients verlieren kurzzeitig die Verbindung.
+    \item \textbf{Netzunterbrechung}: Publish/Subscribe-Pfade sind temporär nicht verfügbar.
+    \item \textbf{Ungültige Payloads}: Parsing oder Feldvalidierung schlägt in Listener/Handler fehl.
+    \item \textbf{Client-Absturz}: Dienst beendet sich unerwartet.
+\end{enumerate}
+
+Recovery-Mechanismen in der aktuellen Architektur:
+
+\begin{itemize}
+    \item \texttt{actionHandler} mit Reconnect-Logik (zeitversetzter Neuverbindungsversuch)
+    \item Container-Restart-Policy für Broker und Clientdienste
+    \item klare Trennung zwischen Daten- und Steuerpfad zur Fehlerlokalisierung
+    \item Logauswertung über Docker-Logs und Systemebene
+\end{itemize}
+
+Technischer Effekt: Die Dienste sind fehlertolerant gegenüber kurzzeitigen Ausfällen und verbinden sich nach Störungen automatisch wieder, ohne dass manuelle Reinitialisierung jedes einzelnen Containers erforderlich ist.
+
+\subsubsection{Zigbee-Netzdesign und Inbetriebnahme}
+
+Die Zigbee-Topologie wurde nicht nur logisch in der Software geplant, sondern physisch im Prototyp und anschließend im Containerbetrieb iterativ validiert. Ziel war ein Netz, das bei typischen Baustellenbedingungen stabil bleibt: wechselnde Gerätepositionen, metallische Oberflächen, temporäre Stromunterbrechungen und wechselnde Funkumgebung.
+
+\textbf{Pairing-Prozess und Inbetriebnahmereihenfolge}
+
+Der Pairing-Prozess wurde standardisiert, damit neue Geräte reproduzierbar eingebunden werden können. Die Reihenfolge ist dabei entscheidend, weil sie die spätere Mesh-Qualität direkt beeinflusst:
+
+\begin{enumerate}
+    \item Coordinator starten (Zigbee2MQTT + Dongle betriebsbereit)
+    \item Zuerst netzversorgte Router-Geräte pairen (insbesondere Zigbee-Plugs)
+    \item Danach batteriebetriebene Endgeräte pairen (Türkontakt, Klima-Sensoren, Presence)
+    \item Nach jedem Pairing Topic-/Payload-Prüfung im MQTT-Broker durchführen
+    \item Abschlussprüfung im Dashboard und in \texttt{latestSensorData}
+\end{enumerate}
+
+Der technische Hintergrund ist, dass netzversorgte Geräte als Router fungieren und damit den Pfad für spätere Endgeräte bereitstellen. Werden Endgeräte zuerst eingebunden, entstehen häufiger suboptimale Routen, die später manuell korrigiert werden müssen.
+
+\textbf{Device-Naming und Identitätsmodell}
+
+Für die Betriebsstabilität wurde ein striktes Namensschema verwendet. Jedes Gerät hat eine technisch eindeutige ID und eine semantische Zuordnung über Prefix + Containernummer:
+
+\begin{itemize}
+    \item \texttt{zb\_door\_<containerId>}
+    \item \texttt{zb\_th\_inside\_<containerId>}
+    \item \texttt{zb\_th\_outside\_<containerId>}
+    \item \texttt{zb\_appearance\_<containerId>}
+    \item \texttt{zb\_plug\_<type>\_<containerId>}
+\end{itemize}
+
+Diese Konvention reduziert Konfigurationsfehler in drei Bereichen gleichzeitig:
+
+\begin{itemize}
+    \item Topic-Routing im Broker
+    \item Mapping in \texttt{config.json} (Listener/Handler)
+    \item Entitäten im Home-Assistant-Dashboard
+\end{itemize}
+
+\textbf{Mesh-Verhalten und Routinglogik}
+
+Das Zigbee-Netz wurde als klassisches Mesh mit einem Coordinator und mehreren Routern aufgebaut. Im Betrieb zeigt sich das gewünschte Verhalten vor allem bei temporären Störungen:
+
+\begin{itemize}
+    \item Fällt ein einzelner Pfad aus, können Endgeräte auf alternative Routerpfade wechseln.
+    \item Nach Reboots synchronisieren sich Geräte ohne vollständiges Neu-Pairing wieder ein.
+    \item Bei mehreren Routern sinkt die Wahrscheinlichkeit, dass einzelne Endgeräte isoliert werden.
+\end{itemize}
+
+Für die Praxis bedeutet das: Die Stabilität des Netzes hängt weniger von einem einzelnen "starken" Gerät ab, sondern von einer sinnvollen Verteilung netzversorgter Router im Raum.
+
+\textbf{Positionierung im Container}
+
+Die Positionierung wurde aus Funktions- und Funkperspektive gleichzeitig geplant:
+
+\begin{itemize}
+    \item Türkontakt nahe Türblatt für klare Zustandswechsel
+    \item Presence Detector so ausgerichtet, dass typische Bewegungszonen erfasst werden
+    \item Innenklima-Sensor in repräsentativer Aufenthaltszone, nicht direkt an Heiz-/Kühlquelle
+    \item Außenklima-Sensor witterungsgeschützt, aber mit verlässlichem Funkpfad
+    \item Zigbee-Plugs als Schaltpunkt und zugleich als Mesh-Router genutzt
+\end{itemize}
+
+Diese doppelte Betrachtung (Messqualität + Funkqualität) war entscheidend, weil eine technisch korrekte Sensorposition ohne stabilen Funkpfad im Betrieb keinen Mehrwert liefert.
+
+\textbf{Lessons Learned aus Inbetriebnahme und Betrieb}
+
+Aus der praktischen Umsetzung wurden folgende übertragbare Erkenntnisse abgeleitet:
+
+\begin{enumerate}
+    \item Ein klares Naming-Schema ist wichtiger als es zu Beginn erscheint; es verhindert Folgefehler in Broker, Backend und Dashboard.
+    \item Router zuerst pairen spart späteren Aufwand bei Rejoin und Fehlersuche.
+    \item Für Zigbee ist die reale Einbausituation im Container relevanter als Reichweitenangaben aus Datenblättern.
+    \item Ein kleiner, dokumentierter Inbetriebnahme-Check pro Gerät (paired, Topic sichtbar, Daten in Firestore, Anzeige im Dashboard) erhöht die Qualität deutlich.
+    \item Netzwerkstabilität entsteht durch verteilte Routerstruktur, nicht durch einzelne Hochleistungspositionen.
+\end{enumerate}
+
+Der Abschnitt zeigt damit, dass das Zigbee-Netz nicht nur konzeptionell beschrieben, sondern als technisches Teilsystem mit klaren Betriebsregeln umgesetzt wurde.
+
 \subsubsection{Eigene Sektion: mqttListener und actionHandler}
 
 Die beiden Node.js-Dienste \texttt{mqttListener} und \texttt{actionHandler} bilden die zentrale Laufzeitlogik auf dem Raspberry Pi. Beide Dienste laufen als Container und sind auf unterschiedliche Aufgaben spezialisiert. Die Implementierung basiert auf dem npm-Paket \texttt{mqtt} für Broker-Kommunikation, \texttt{firebase-admin} für Firestore-Zugriff (im Listener) sowie einem gemeinsamen Konfigurationsmodell über \texttt{config.json}.
@@ -253,28 +476,140 @@ Der Block \texttt{devices} beschreibt zusätzlich die konkreten Instanzen (z. B.
 \textbf{mqttListener (Ingestion und Dateneinsparung)}
 
 
-Der \texttt{mqttListener} abonniert das Haupttopic \texttt{<mqtt.topic>/\#} und verarbeitet eingehende Zigbee2MQTT-Nachrichten. \texttt{/set}-Topics werden bewusst ignoriert, damit reine Steuerkommandos nicht als Sensormessungen gespeichert werden. Anschließend wird der Sensortyp über Prefix-Matching auf Basis der Konfiguration ermittelt.
+Der \texttt{mqttListener} ist der zentrale Ingestion-Dienst zwischen Zigbee2MQTT und Firestore. Er verarbeitet eingehende MQTT-Nachrichten, reduziert nicht relevante Datenänderungen und persistiert nur fachlich sinnvolle Zustandsänderungen. Ziel ist eine robuste Datenbasis bei kontrollierter Datenmenge.
 
-Intern verwendet der Dienst mehrere In-Memory-Datenstrukturen:
+\textbf{Datenfluss im mqttListener}
+
+Der technische Ablauf ist in der Implementierung klar sequenziert:
+
+\begin{enumerate}
+    \item Subscribe auf \texttt{<mqtt.topic>/\#}
+    \item Ausschluss von \texttt{/set}-Topics (Steuerkanal, keine Telemetrie)
+    \item Ableitung von \texttt{sensorType} und \texttt{sensorId} aus dem Topic
+    \item Parsing der Payload (JSON oder Fallback auf einfachen Zustandswert)
+    \item Feld-Mapping gemäß \texttt{config.json}
+    \item Filterentscheidung über \texttt{shouldSaveData(...)}
+    \item Bei positivem Entscheid: Persistenz in Fach-Collection und \texttt{latestSensorData}
+\end{enumerate}
+
+Die Pipeline trennt damit klar zwischen Transportdaten (MQTT-Payload), fachlichem Datenmodell (gemappte Felder) und persistierten Datensätzen.
+
+\begin{lstlisting}[caption={Schematischer Verarbeitungsfluss im mqttListener},label={lst:mqttlistener_pipeline},basicstyle=\ttfamily\small]
+onMessage(topic, payload):
+  if topic.endsWith('/set'): return
+  sensorType = getSensorType(topic)
+  if !sensorType: return
+  sensorId = extractSensorId(topic)
+  data = parsePayload(payload)
+  mapped = mapByConfig(sensorType, sensorId, data)
+  if shouldSaveData(sensorId, sensorType, mapped):
+      writeCollection(sensorType, mapped)
+      writeLatest(sensorId, sensorType, mapped)
+  updateCaches(sensorId, mapped)
+\end{lstlisting}
+
+\textbf{Filterlogik und Schwellwerte}
+
+Die Filterlogik verhindert, dass jede Kleinänderung als neuer Firestore-Datensatz gespeichert wird. Technisch wird dafür eine Kombination aus Zeit- und Wertfilter genutzt.
+
+Die im Code hinterlegten Grenzwerte sind:
 
 \begin{itemize}
-    \item \texttt{lastValues} als Cache des letzten bekannten Zustands je Sensor
-    \item \texttt{lastUpdateTimes} zur zeitlichen Drosselung von Schreibvorgängen
-    \item \texttt{lastStatusChangeTime} zur Entprellung häufiger ON/OFF-Wechsel bei Steckdosen
+    \item Temperatur: 2\,$^{\circ}$C
+    \item Luftfeuchte: 5\,\%
+    \item Batterie: 1\,\%
+    \item Leistung Steckdosen: 5\,W
+    \item Mindestintervall regulär: 10 Minuten
+    \item Mindestintervall schnelle Statuswechsel: 5 Sekunden
 \end{itemize}
 
-Für die Speicherung wird ein mehrstufiges Filterverfahren verwendet, um unnötige Datenbankeinträge zu vermeiden:
+Damit ergeben sich drei zentrale Entscheidungsregeln:
 
 \begin{itemize}
-    \item \textbf{Zeitfilter}: Standardmäßig wird nur in festen Zeitabständen gespeichert (aktuell 10 Minuten).
-    \item \textbf{Ereignisfilter für Zustandswechsel}: Tür- und Presence-Sensoren werden bei echter Statusänderung sofort gespeichert.
-    \item \textbf{Schwellwerte}: Temperatur, Luftfeuchte, Batteriestand und Steckdosenleistung werden nur bei signifikanten Änderungen geschrieben.
-    \item \textbf{Entprellung bei Steckdosen}: Sehr schnelle ON/OFF-Wechsel werden über ein Mindestintervall gebremst.
+    \item \textbf{Regel A (zeitbasiert)}: Wenn seit letzter Speicherung das Mindestintervall überschritten ist, wird gespeichert.
+    \item \textbf{Regel B (ereignisbasiert)}: Bei Tür/Presence wird bei echter Statusänderung sofort gespeichert.
+    \item \textbf{Regel C (wertbasiert)}: Bei TH- und Plug-Daten wird nur bei signifikanter Abweichung gespeichert.
 \end{itemize}
 
-Die Schwellwerte sind im Code explizit als technische Parameter hinterlegt (Temperatur 2\,$^{\circ}$C, Luftfeuchte 5\,\%, Batterie 1\,\%, Leistung 5\,W) und können zentral angepasst werden. Werden die Bedingungen erfüllt, schreibt der Dienst die Daten sowohl in die fachliche Ziel-Collection als auch in \texttt{latestSensorData} als aktuelle Sicht. Dadurch sind sowohl Historie als auch aktueller Zustand verfügbar.
+Die Filterfunktion arbeitet damit nicht binär nach "speichern/nicht speichern", sondern bewertet Kontext (Sensortyp), Zeitdifferenz und Änderungsgröße gemeinsam.
 
-Zusätzlich wird die \texttt{containerId} aus der Sensor-ID extrahiert und gemeinsam mit \texttt{sensorId}, gemappten Messfeldern und serverseitigem Zeitstempel gespeichert. Diese Normalisierung vereinfacht Auswertungen im Backend und reduziert Parser-Logik im Frontend.
+\textbf{Deduplizierung und Entprellung}
+
+Im praktischen Betrieb entstehen häufig technisch redundante Nachrichten, z. B. wiederholte identische Zustände oder schnelle ON/OFF-Wechsel bei Aktoren. Der \texttt{mqttListener} reduziert diese Last über drei Deduplizierungsebenen:
+
+\begin{itemize}
+    \item \textbf{Wertdeduplizierung}: Identische Zustände werden unterhalb der Schwellwerte nicht erneut persistiert.
+    \item \textbf{Zeitdeduplizierung}: Wiederholungen innerhalb des Mindestintervalls werden verworfen.
+    \item \textbf{Status-Entprellung}: Für Plugs gilt ein Mindestabstand zwischen Statuswechseln, um Flattern im Datenbestand zu vermeiden.
+\end{itemize}
+
+Für Steckdosen wird zusätzlich der Zustand normiert (Trim + Uppercase), damit unterschiedliche Schreibweisen (z. B. \texttt{"on"}, \texttt{"ON"}, \texttt{" ON "}) nicht als fachlich neue Ereignisse behandelt werden.
+
+\textbf{Speicherstrategie in Firestore}
+
+Die Persistenz folgt einem Zwei-Speicher-Modell:
+
+\begin{itemize}
+    \item \textbf{Historien-Collections}: Zeitliche Verlaufssicht je Sensorklasse
+    \item \textbf{latestSensorData}: aktueller Zustand je \texttt{sensorId}
+\end{itemize}
+
+Historien-Collections liefern Analysefähigkeit (Trend, Verlauf, Ausreißer), während \texttt{latestSensorData} schnelle Lesezugriffe für Dashboard und API-Endpunkte ermöglicht. Ohne diese Trennung müssten aktuelle Zustände aus großen Verlaufstabellen aggregiert werden, was Latenz und Query-Kosten erhöht.
+
+\begin{lstlisting}[caption={Collection-Modell des mqttListener},label={lst:mqttlistener_collections},basicstyle=\ttfamily\small]
+Historien:
+  doorSensors
+  thInsideSensors
+  thOutsideSensors
+  appearanceSensors
+  plugCoolingSensors
+  plugHeatingSensors
+  plugLightSensors
+
+Current State:
+  latestSensorData/<sensorId>
+\end{lstlisting}
+
+\textbf{Rolle von \texttt{latestSensorData}}
+
+\texttt{latestSensorData} dient als operative "Single Source of Current Truth" pro Gerät. Pro Sensor wird genau ein Dokument geführt und bei relevanter Änderung überschrieben. Das hat drei technische Vorteile:
+
+\begin{itemize}
+    \item konstante Lesezeit für aktuelle Zustände
+    \item geringere Last für häufig aktualisierte Dashboards
+    \item klare Trennung zwischen "aktuell" und "historisch"
+\end{itemize}
+
+Zusätzlich werden Metadaten wie \texttt{sensorType}, \texttt{collectionName} und serverseitige Zeitstempel gespeichert, damit die Daten im Backend ohne zusätzliche Lookup-Schritte interpretierbar bleiben.
+
+\textbf{Container-Zuordnung und Normalisierung}
+
+Die \texttt{containerId} wird aus der Sensor-ID abgeleitet (Suffix-Konvention). Damit ist die Mandantentrennung pro Container bereits auf Datenebene vorhanden. Zusammen mit dem Feld-Mapping aus \texttt{config.json} entsteht ein konsistentes Schema, obwohl die Rohpayloads je Gerätetyp unterschiedlich aussehen.
+
+\textbf{Fehlerrobustheit in der Verarbeitung}
+
+Der Listener ist fehlertolerant ausgelegt:
+
+\begin{itemize}
+    \item unbekannte Topics werden protokolliert und übersprungen
+    \item Parsing-Fehler stoppen nicht den Gesamtprozess
+    \item Speicherausfälle werden je Nachricht behandelt, ohne den Listener zu beenden
+\end{itemize}
+
+Damit bleibt die Pipeline auch bei partiell fehlerhaften Nachrichten im Dauerbetrieb stabil.
+
+\textbf{Trade-offs: Datenmenge vs. Genauigkeit}
+
+Die gewählte Strategie ist ein bewusster Kompromiss zwischen hoher Datenauflösung und wirtschaftlicher Datenhaltung:
+
+\begin{itemize}
+    \item \textbf{Vorteil reduzierte Datenmenge}: geringere Firestore-Schreiblast, niedrigere Kosten, bessere Query-Performance
+    \item \textbf{Nachteil reduzierte Datenauflösung}: sehr kleine Zwischenänderungen gehen in der Historie verloren
+\end{itemize}
+
+Für CESC wurde dieser Kompromiss als sinnvoll bewertet, da für operative Entscheidungen (Heizen/Kühlen, Anwesenheit, Türstatus) signifikante Zustandswechsel wichtiger sind als lückenlose Rohtelemetrie jeder Einzeländerung.
+
+Die Architektur bleibt erweiterbar: Bei Bedarf können Schwellwerte je Sensorklasse angepasst oder für einzelne Geräte enger gesetzt werden, ohne das Grunddesign von Listener, Collections und API zu ändern.
 
 \textbf{actionHandler (Steuerpfad für Aktoren)}
 
@@ -326,11 +661,7 @@ Home Assistant wird nicht nur zur Visualisierung eingesetzt, sondern als lokale 
 
 Ein konkretes Beispiel für eine Home-Assistant-Automation (Temperaturregelung) ist in Listing~\ref{lst:ha_automation_temp} dargestellt:
 
-\begin{lstlisting}[
-caption={Home Assistant Automation: Heizung bei niedriger Innentemperatur},
-label={lst:ha_automation_temp},
-basicstyle=\ttfamily\small
-]
+\begin{lstlisting}[language=bash,caption={Home Assistant Automation: Heizung bei niedriger Innentemperatur},label={lst:ha_automation_temp},basicstyle=\ttfamily\small]
 alias: Heizung bei Kaltstart aktivieren
 trigger:
   - platform: numeric_state
@@ -353,6 +684,7 @@ Die Trigger- und Condition-Modelle entsprechen der offiziellen Home-Assistant-Sp
 
 
 \section{Deployment}
+\setauthor{Leopold Mistelberger}
 
 \begin{figure}[H]
     \centering
@@ -362,6 +694,357 @@ Die Trigger- und Condition-Modelle entsprechen der offiziellen Home-Assistant-Sp
 \end{figure}
 
 Abbildung~\ref{fig:systemarchitektur_deployment} ergänzt die logische Sicht aus Abbildung~\ref{fig:systemarchitektur} um die physische Verteilung der Komponenten. Sichtbar ist, welche Container auf dem Raspberry Pi und welche Dienste auf dem Server laufen sowie aus welcher Registry die Images bezogen werden.
+
+\subsection{Betrieb und Hardening des Raspberry Pi}
+
+Der Raspberry Pi ist die zentrale Edge-Laufzeitumgebung des Gesamtsystems. Deshalb wurde der Betrieb so umgesetzt, dass einerseits eine stabile 24/7-Ausführung der Containerdienste möglich ist und andererseits administrative Angriffsflächen reduziert werden. Dieser Abschnitt beschreibt die technische Betriebsbasis und die konkret umgesetzten Hardening-Maßnahmen.
+
+\subsubsection{OS-Version und Basiskonfiguration}
+
+Als Betriebssystem wird Ubuntu Server in einer LTS-Variante eingesetzt. Die LTS-Basis wurde gewählt, weil Sicherheitsupdates und Kernel-Wartung über einen langen Zeitraum bereitgestellt werden und dadurch die Wartbarkeit im Projektbetrieb steigt.
+
+Nach der Erstinstallation wurde eine minimale Basis eingerichtet:
+
+\begin{itemize}
+    \item feste Hostname-Konvention je Gerät
+    \item korrekte Zeitzone für konsistente Zeitstempel in Logs und Firestore
+    \item statische oder reservierte IP-Zuordnung im Baustellennetz
+    \item deaktivierte unnötige Standarddienste
+\end{itemize}
+
+Die folgenden Systeminformationen werden bei Inbetriebnahme dokumentiert, damit ein reproduzierbarer Ausgangszustand vorliegt:
+
+\begin{lstlisting}[language=bash,caption={Ermittlung des OS- und Kernelstands am Raspberry Pi},label={lst:raspi_os_kernel},basicstyle=\ttfamily\small]
+cat /etc/os-release
+uname -a
+hostnamectl
+\end{lstlisting}
+
+\subsubsection{Paketstand und Reproduzierbarkeit}
+
+Um Konfigurationsdrift zu vermeiden, wird der Paketstand nach jeder Inbetriebnahme und nach größeren Wartungen erfasst. Dadurch kann bei Fehleranalyse nachvollzogen werden, welche Versionen zum jeweiligen Zeitpunkt aktiv waren.
+
+\begin{lstlisting}[language=bash,caption={Dokumentation des Paketstands},label={lst:raspi_package_state},basicstyle=\ttfamily\small]
+apt list --installed > /var/log/cesc/apt-installed.log
+dpkg -l > /var/log/cesc/dpkg-state.log
+docker --version
+docker compose version
+\end{lstlisting}
+
+Ziel ist nicht, jede Paketversion manuell zu verwalten, sondern den tatsächlichen Systemzustand revisionsfähig festzuhalten.
+
+\subsubsection{Service-Autostart und Reihenfolge}
+
+Die Kernkomponenten müssen nach Stromausfall oder Neustart automatisch wieder verfügbar sein. Deshalb wurde der Betrieb auf systemd und Docker-Restart-Policies ausgerichtet.
+
+\begin{itemize}
+    \item Docker-Dienst mit Boot-Autostart aktiviert
+    \item Container mit Restart-Policy \texttt{unless-stopped} oder \texttt{always}
+    \item geordnete Startreihenfolge über Docker Compose und Service-Abhängigkeiten
+    \item automatische Einwahl in das Unternehmensnetz über GlobalProtect-VPN
+\end{itemize}
+
+Ein typischer Ablauf nach Reboot ist: Netzwerk verfügbar $\rightarrow$ GlobalProtect-VPN verbunden $\rightarrow$ Docker gestartet $\rightarrow$ MQTT-Broker/Zigbee2MQTT $\rightarrow$ mqttListener/actionHandler $\rightarrow$ Home Assistant.
+
+\begin{lstlisting}[language=bash,caption={Prüfung von Autostart und Servicezustand},label={lst:raspi_autostart_check},basicstyle=\ttfamily\small]
+systemctl is-enabled docker
+systemctl status docker
+docker ps --format "table {{.Names}}\t{{.Status}}"
+\end{lstlisting}
+
+Für die VPN-Einwahl wird beim Systemstart ein systemd-Service verwendet, der den GlobalProtect-Client mit dem Firmenportal verbindet. Damit sind Managementzugriffe und zentrale Dienste der Firma Herbsthofer direkt nach dem Boot verfügbar.
+
+\begin{lstlisting}[language=bash,caption={Beispielhafter GlobalProtect-Autostart per systemd},label={lst:globalprotect_autostart},basicstyle=\ttfamily\small]
+sudo systemctl enable globalprotect.service
+sudo systemctl start globalprotect.service
+globalprotect show --status
+\end{lstlisting}
+
+\subsubsection{Benutzer- und Rechtekonzept}
+
+Für den Betrieb wird kein gemeinsamer Allzweck-Account verwendet. Stattdessen werden Rollen getrennt:
+
+\begin{itemize}
+    \item Administrativer Benutzer für Wartung
+    \item Dienstausführung über dedizierte Containerprozesse
+    \item Keine tägliche Arbeit als Root-Benutzer
+\end{itemize}
+
+Zusatzmassnahmen im Projektbetrieb:
+
+\begin{itemize}
+    \item SSH-Anmeldung nur für explizit freigeschaltete Accounts
+    \item Dateirechte für Konfigurationsdateien restriktiv gesetzt
+    \item Secrets nicht im Quellcode, sondern zur Laufzeit injiziert
+\end{itemize}
+
+\subsubsection{SSH-Härtung}
+
+Da der Raspberry Pi remote gewartet wird, ist SSH ein kritischer Eintrittspunkt. Die Absicherung erfolgt über Konfiguration und Netzsegmentierung.
+
+Umgesetzte Hardening-Ansatzpunkte:
+
+\begin{itemize}
+    \item Passwortauthentifizierung deaktivieren, Login über SSH-Keys
+    \item Root-Login per SSH deaktivieren
+    \item Optionaler Portwechsel und Zugriff nur aus definierten Netzen
+    \item Brute-Force-Schutz (z. B. Rate-Limit/Failsafe auf Netzwerkebene)
+\end{itemize}
+
+Beispiel für zentrale Parameter in \texttt{/etc/ssh/sshd\_config}:
+
+\begin{lstlisting}[language=bash,caption={Typische SSH-Hardening-Parameter},label={lst:ssh_hardening},basicstyle=\ttfamily\small]
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+ChallengeResponseAuthentication no
+UsePAM yes
+\end{lstlisting}
+
+Nach Änderungen an der SSH-Konfiguration wird der Dienst neu geladen und aus einer zweiten Session gegengeprüft, um Lockout-Szenarien zu vermeiden.
+
+\subsection{Proxmox-Serverbetrieb}
+
+Neben der Edge-Laufzeit auf dem Raspberry Pi wurde für den zentralen Betrieb ein Proxmox-Server als Virtualisierungsplattform eingesetzt. Ziel dieser Plattform ist es, die serverseitigen Komponenten des CESC-Systems reproduzierbar bereitzustellen, logisch zu trennen und betrieblich kontrolliert zu aktualisieren.
+
+Der Proxmox-Server übernimmt dabei drei Kernaufgaben:
+
+\begin{itemize}
+    \item konsolidierte Laufzeitumgebung für Backend-, Frontend- und Infrastrukturkomponenten
+    \item saubere Trennung von Management-, Service- und Betriebsverkehr
+    \item Wiederherstellbarkeit über Snapshot-, Backup- und Rollback-Mechanismen
+\end{itemize}
+
+\subsubsection{VM- und Container-Aufbau}
+
+Die serverseitige CESC-Umgebung ist in Proxmox bewusst in mehrere technische Schichten getrennt. Statt alle Dienste in einer einzelnen Instanz auszuführen, wird eine Kombination aus virtuellen Maschinen und containerisierten Diensten verwendet. Diese Struktur reduziert Seiteneffekte bei Updates und vereinfacht Fehleranalysen.
+
+Die logische Aufteilung ist wie folgt umgesetzt:
+
+\begin{itemize}
+    \item \textbf{Management-Ebene}: Proxmox-Host mit Web-UI, Storage-Verwaltung und Backup-Jobs
+    \item \textbf{Applikations-Ebene}: VM für Docker-Compose-Stacks (Frontend, Backend, Reverse Proxy, Keycloak)
+    \item \textbf{Integrations-Ebene}: gekoppelte Kommunikation zum Edge-Gateway (Raspberry Pi) über definierte Endpunkte
+\end{itemize}
+
+In der Applikations-VM laufen die einzelnen Dienste in getrennten Containern. Dadurch bleiben Releases einzelner Komponenten möglich, ohne den gesamten Server neu zu deployen. Gleichzeitig kann für jeden Dienst gezielt ein Health-Check und ein Restart-Verhalten definiert werden.
+
+\begin{lstlisting}[language=bash,caption={Beispielhafter Ablauf für Update eines Compose-Stacks auf der Proxmox-VM},label={lst:proxmox_compose_update},basicstyle=\ttfamily\small]
+docker compose pull
+docker compose up -d
+docker compose ps
+\end{lstlisting}
+
+Ein wesentliches Betriebskriterium war, dass der serverseitige Stack nach einem Host-Neustart automatisch wieder hochfährt. Das wird über den VM-Autostart in Proxmox und die Restart-Policies der Container kombiniert erreicht.
+
+\subsubsection{Netzwerksegmentierung und Kommunikationspfade}
+
+Die Netzwerkarchitektur wurde so geplant, dass Managementzugriffe, interne Dienstkommunikation und externe Zugriffe getrennt betrachtet werden können. Diese Segmentierung senkt das Risiko, dass ein kompromittierter Dienst unmittelbar auf administrative Schnittstellen zugreifen kann.
+
+Technisch wird zwischen folgenden Verkehrsarten unterschieden:
+
+\begin{itemize}
+    \item \textbf{Management-Verkehr}: Zugriff auf Proxmox-Administration nur aus definierten Admin-Netzen
+    \item \textbf{Service-Verkehr intern}: Container-zu-Container-Kommunikation innerhalb der Applikations-VM
+    \item \textbf{Service-Verkehr extern}: HTTPS-Zugriff auf Frontend und API über Reverse Proxy
+    \item \textbf{Edge-Integration}: gerichtete Verbindungen zwischen Serverdiensten und Raspberry-Pi-Komponenten
+\end{itemize}
+
+Der Zugriff von der Baustelle auf den zentralen Proxmox-Server erfolgt nicht über offene Verwaltungsports, sondern über die \textbf{GlobalProtect-VPN-Verbindung}. Die dafür genutzte VPN- und Firewall-Plattform kommt von \textbf{Palo Alto Networks}. Erst nach erfolgreicher VPN-Einwahl ist der Zugriff auf Proxmox und die internen Netze möglich. So bleibt die Verwaltung vom öffentlichen Netz getrennt.
+
+Zusätzlich wurde auf der \textbf{Palo-Alto-Firewall} ein rollenbasiertes Modell umgesetzt: Jeder \textbf{registrierte Benutzer} und jeder \textbf{registrierte Raspberry Pi} darf nur die Verbindungen nutzen, die wirklich gebraucht werden. Die Freigaben sind als Allowlist hinterlegt und umfassen vor allem:
+
+\begin{itemize}
+    \item \textbf{VPN}: Zugriff auf das GlobalProtect-Portal bzw. die zugehörigen Tunnel-Endpunkte
+    \item \textbf{GitHub/GHCR}: Zugriff auf Repository und Container Registry für Pull/Deploy-Prozesse
+    \item \textbf{Firebase}: Zugriff auf Firestore/Firebase-Endpunkte für Telemetrie und Steuerdaten
+    \item \textbf{Basisdienste}: DNS/NTP sowie notwendige OS- und Paket-Update-Endpunkte
+\end{itemize}
+
+Alle anderen ein- und ausgehenden Verbindungen sind standardmäßig blockiert. Das reduziert das Risiko von Fehlkonfigurationen und unerwarteten Datenwegen.
+
+Die Segmentierung folgt dem Prinzip, dass jeder Dienst nur die Ports sieht, die er braucht. Zum Beispiel bleibt Datenbank- oder Identity-Provider-Kommunikation intern, und nach außen werden nur die nötigen Reverse-Proxy-Endpunkte veröffentlicht.
+
+Zusammen mit dem VPN ergibt sich ein mehrstufiges Sicherheitsmodell: Admin-Zugriffe sind eingeschränkt, produktive HTTP-Aufrufe laufen über den Reverse Proxy, und interne Containernetze sind von Management-Schnittstellen getrennt.
+
+\subsubsection{GlobalProtect-VPN im Baustelleneinsatz}
+
+Für den Alltag war wichtig, dass auch von wechselnden Baustellen aus ein sicherer und gleichzeitig einfacher Zugriff auf die zentrale Serverinfrastruktur möglich ist. Genau dafür wird im Projekt \textbf{GlobalProtect} eingesetzt: Der Zugriff von der Baustelle zum Proxmox-Server und zu den zentralen Diensten läuft nur über den VPN-Tunnel.
+
+Technisch bedeutet das:
+
+\begin{itemize}
+    \item Kein direkter Zugriff aus dem Baustellennetz auf Proxmox-Managementports
+    \item Aufbau eines authentifizierten Tunnels zur Firmeninfrastruktur
+    \item Zugriff auf interne Zielsysteme erst nach erfolgreicher Benutzer- und Gerätezulassung
+\end{itemize}
+
+Dieser Ansatz wurde bewusst gewählt, weil Baustellennetze in Qualität und Sicherheit stark schwanken können. Durch das VPN werden diese Unterschiede vom eigentlichen Serverbetrieb getrennt. Für den Administrator bleibt die Zielumgebung gleich: Er arbeitet immer im selben internen Netzsegment, egal ob er im Büro, Homeoffice oder auf der Baustelle ist.
+
+Ein weiterer Vorteil ist die Nachvollziehbarkeit: VPN-Sitzungen lassen sich Benutzerkonto und Endgerät zuordnen. Dadurch kann man im Störungsfall nachvollziehen, wann welcher administrative Zugriff stattgefunden hat.
+
+In Kombination mit dem Autostart des VPN-Clients auf den Edge-Geräten ergibt sich ein stabiler Ablauf: Nach einem Reboot verbinden sich die Systeme wieder mit dem Firmennetz, und die nötigen Verwaltungs- und Integrationspfade sind ohne manuelle Nacharbeit verfügbar.
+
+\subsubsection{Firewall-Rechtemodell für Benutzer und Raspberry Pi}
+
+Das Zugriffsmodell wurde als \textbf{Default-Deny mit expliziter Allowlist} umgesetzt. Das heißt: Jede Verbindung ist zuerst verboten und wird nur dann erlaubt, wenn sie für einen konkreten Zweck gebraucht wird.
+
+Die Berechtigungen werden nach Quelle, Ziel und Rolle unterschieden:
+
+\begin{itemize}
+    \item \textbf{Registrierte Benutzerkonten}: administrative Tätigkeiten, Wartung, Diagnose
+    \item \textbf{Registrierte Raspberry Pis}: technischer Datenaustausch für Sensorik/Aktorik und Betriebsupdates
+    \item \textbf{Serverdienste}: kommunizieren nur über freigegebene Serviceports innerhalb definierter Segmente
+\end{itemize}
+
+Für Benutzerkonten bedeutet das in der Praxis: Ein Administrator kann Proxmox, Monitoring und relevante Service-Endpunkte erreichen, aber keine unnötigen Verbindungen in andere interne Netze aufbauen. Für Raspberry-Pi-Systeme ist das Profil noch strenger: Diese Geräte dürfen nur notwendige Ziele erreichen, z. B. Container-Registry, Firebase/Firestore und VPN-Endpunkte.
+
+Die Regelklassen wurden in der Projektdokumentation in vier Gruppen gegliedert:
+
+\begin{enumerate}
+    \item \textbf{Identität und Tunnel}: GlobalProtect-Portal, Authentifizierungsendpunkte, Tunnelbetrieb
+    \item \textbf{Code- und Artefaktversorgung}: GitHub und GHCR für Quellcode/Images
+    \item \textbf{Anwendungsdaten}: Firebase/Firestore für Telemetrie, Zustände und Steuerinformationen
+    \item \textbf{Basisbetrieb}: DNS, NTP sowie notwendige Update- und Paketquellen
+\end{enumerate}
+
+Dieses Modell erfüllt zwei Ziele gleichzeitig: Der Betrieb bleibt möglich, weil alle nötigen Kommunikationswege da sind. Gleichzeitig wird die Angriffsfläche kleiner, weil nicht benötigte Protokolle und Ziele blockiert bleiben.
+
+\subsubsection{Praktische Umsetzung der Allowlist-Regeln}
+
+Die Umsetzung erfolgt schrittweise und nachvollziehbar. Neue Freigaben werden nicht spontan dauerhaft aktiviert, sondern zuerst dokumentiert (Zweck, Quelle, Ziel, Port/Protokoll, Laufzeit). Erst danach wird die Regel geprüft und in die produktive Firewall-Policy übernommen.
+
+Für den CESC-Betrieb hat sich dabei folgender Ablauf etabliert:
+
+\begin{enumerate}
+    \item \textbf{Bedarf melden}: z. B. neues Zielsystem oder zusätzlicher Dienst
+    \item \textbf{Risiko bewerten}: Ist die Freigabe dauerhaft nötig oder nur temporär?
+    \item \textbf{Regel minimal definieren}: möglichst eng nach Quelle, Ziel, Port und Zeitfenster
+    \item \textbf{Verifizieren}: Verbindungstest und Logprüfung im Zielsystem
+    \item \textbf{Dokumentieren}: Übernahme in Betriebsdokumentation und Änderungsprotokoll
+\end{enumerate}
+
+Für die Diplomarbeit ist dieser Prozess wichtig, weil er zeigt: Sicherheit entsteht nicht nur durch einzelne Funktionen, sondern durch klare und wiederholbare Abläufe. Die Entscheidung ,,nur was nötig ist, wird erlaubt`` bleibt so auch bei späteren Erweiterungen konsistent.
+
+\subsubsection{Überwachung, Logging und Fehlerbehandlung}
+
+Ein strenges Firewall-Modell funktioniert nur dann gut, wenn Blockierungen und Fehlkonfigurationen früh erkannt werden. Deshalb wurde der Betrieb um einfache, aber wirksame Kontrollen ergänzt:
+
+\begin{itemize}
+    \item regelmäßige Prüfung fehlgeschlagener Verbindungsversuche in Firewall- bzw. Gateway-Logs
+    \item Abgleich zwischen erwarteten Kommunikationspfaden und tatsächlich beobachtetem Traffic
+    \item gezielte Funktionsprüfungen nach Policy-Änderungen (z. B. Pull aus GHCR, Firestore-Zugriff, VPN-Reconnect)
+\end{itemize}
+
+Typische Fehler sind nicht nur komplette Ausfälle, sondern auch Teilstörungen, zum Beispiel wenn ein Dienst erreichbar ist, aber ein nachgelagerter Endpunkt blockiert bleibt. Beispiele sind fehlgeschlagene Image-Pulls, verzögerte Telemetrieschreibungen oder fehlgeschlagene Tunnel-Reconnects nach einem Netzwerkwechsel.
+
+Die Fehlerbehandlung folgt einem klaren Muster:
+
+\begin{enumerate}
+    \item \textbf{Symptom erfassen}: Welcher Dienst liefert welchen Fehler?
+    \item \textbf{Pfad isolieren}: Quelle, Ziel, Port und Protokoll bestimmen
+    \item \textbf{Regelstatus prüfen}: blockiert, erlaubt, zeitlich begrenzt oder falsch geroutet
+    \item \textbf{Änderung minimal durchführen}: kleinste notwendige Korrektur statt breiter Freigabe
+    \item \textbf{Nachtest und Protokollierung}: Funktionsnachweis und dokumentierte Abschlusskontrolle
+\end{enumerate}
+
+So wird vermieden, dass kurzfristige Workarounds dauerhaft zu zu breiten Firewallregeln führen. Das ist für den langfristigen Betrieb wichtig, weil sich sonst Sicherheits- und Betriebsrisiken über mehrere Releases summieren.
+
+\subsubsection{Betriebliche Einordnung im Gesamtsystem}
+
+Die Kombination aus GlobalProtect-VPN, rollenbasierter Firewall und dokumentierter Regelpflege ist die sicherheitstechnische Grundlage zwischen Baustelle, Edge-Gerät und Serverbetrieb. Für das CESC-System ergibt sich daraus ein stabiles Betriebsmodell:
+
+\begin{itemize}
+    \item zentral administrierbar trotz verteilter Standorte
+    \item reproduzierbar bei Reboot, Update und Gerätewechsel
+    \item nachvollziehbar durch Protokollierung und Änderungsdokumentation
+    \item erweiterbar für weitere Containerstandorte ohne grundlegende Architekturänderung
+\end{itemize}
+
+Damit wird der Netzwerk- und Zugriffsbereich nicht als Nebensache behandelt, sondern als eigener Architekturbaustein. Das ist wichtig, weil der Projekterfolg nicht nur von laufenden Containern abhängt, sondern von einem sicheren und im Alltag beherrschbaren Betrieb zwischen Baustelle und Serverplattform.
+
+\subsubsection{Ressourcenplanung und Kapazitätssteuerung}
+
+Ein zentraler Teil des Serverbetriebs war die Planung von CPU-, RAM- und Storage-Ressourcen. Da die Last je nach Anzahl aktiver Container und Datenabfragen schwankt, wurde die Kapazität nicht nur statisch reserviert, sondern laufend beobachtet.
+
+Die Planung orientierte sich an folgenden Leitwerten:
+
+\begin{itemize}
+    \item \textbf{CPU}: Reserve für Lastspitzen bei Container-Neustarts und Build-nahen Wartungsfenstern
+    \item \textbf{RAM}: ausreichender Puffer für Backend, Identity-Dienst und Caching ohne Swapping
+    \item \textbf{Storage}: Trennung von Laufzeitdaten, Logs und Backup-Artefakten
+\end{itemize}
+
+Für den laufenden Betrieb wurden Schwellwerte definiert, ab denen eine Kapazitätsprüfung ausgelöst wird, zum Beispiel bei dauerhaft hoher CPU-Last, sinkendem freiem Storage oder auffällig langen API-Antwortzeiten. Die praktische Konsequenz ist ein kontrollierter Ausbau, bevor es zu sichtbaren Serviceeinschränkungen kommt.
+
+\begin{lstlisting}[language=bash,caption={Typische Betriebsprüfungen auf der Applikations-VM},label={lst:proxmox_runtime_checks},basicstyle=\ttfamily\small]
+docker stats --no-stream
+df -h
+free -h
+journalctl -u docker --since "-1h"
+\end{lstlisting}
+
+Diese Kombination aus initialer Dimensionierung und laufender Messung hat sich im Projekt als ausreichend robust erwiesen, um die aktuelle Last sicher abzudecken und Wachstum planbar zu machen.
+
+\subsubsection{Backup-Strategie und Wiederherstellung}
+
+Backups sind im CESC-Betrieb nicht nur für Total-Ausfälle relevant, sondern auch für Fehler bei Konfigurationsänderungen, fehlerhafte Releases oder korrumpierte Laufzeitzustände. Daher wurde zwischen Host-seitigen und Applikations-seitigen Sicherungen unterschieden.
+
+\textbf{Host-seitig in Proxmox:}
+\begin{itemize}
+    \item regelmäßige VM-Backups auf separates Backup-Storage
+    \item Snapshots vor risikobehafteten Wartungsschritten
+    \item prüfbare Job-Historie mit Zeitstempel und Ergebnisstatus
+\end{itemize}
+
+\textbf{Applikations-seitig:}
+\begin{itemize}
+    \item Versionierung der Compose- und Konfigurationsdateien im Repository
+    \item reproduzierbare Images aus der Registry statt lokaler Einmal-Builds
+    \item nachvollziehbare Secret-Verwaltung über Laufzeitinjektion
+\end{itemize}
+
+Das Zielbild ist, sowohl Infrastrukturzustand als auch Applikationszustand unabhängig wiederherstellen zu können. Selbst wenn eine VM vollständig neu aufgesetzt werden muss, lässt sich der Dienststand über die versionierten Artefakte reproduzieren.
+
+\subsubsection{Rollback-Verfahren im Störfall}
+
+Rollback wurde als geplanter Betriebsprozess und nicht als Ausnahme improvisiert. Für den Projektbetrieb wurde ein zweistufiges Vorgehen definiert:
+
+\begin{enumerate}
+    \item \textbf{Applikatives Rollback}: Rückfall auf das letzte stabile Container-Image-Tag
+    \item \textbf{Infrastrukturelles Rollback}: Rücksetzen auf VM-Snapshot oder Restore aus Proxmox-Backup
+\end{enumerate}
+
+In der Praxis wird zuerst der schnellere applikative Rückfall versucht, weil dadurch Ausfallzeiten minimiert werden. Nur wenn die Ursache tiefer liegt (z. B. fehlerhafte Basis-Konfiguration, defekte Paketstände, ungültige Netzparameter), wird auf Snapshot- oder Vollrestore-Ebene zurückgegangen.
+
+Dieses Vorgehen verkürzt die Mean Time to Recovery, weil die Entscheidungspfade im Incident-Fall vorab geklärt sind und nicht erst während des Ausfalls entworfen werden müssen.
+
+\subsubsection{Betriebskonzept und Verantwortlichkeiten}
+
+Der dauerhafte Serverbetrieb folgt einem einfachen, aber verbindlichen Betriebskonzept mit klaren Verantwortlichkeiten. Dabei wurde zwischen Tagesbetrieb, Wartungsfenstern und Störungsbetrieb unterschieden.
+
+\textbf{Tagesbetrieb:}
+\begin{itemize}
+    \item Monitoring von Containerstatus, Ressourcen und Erreichbarkeit
+    \item Prüfung der wichtigsten Dienste (Frontend, API, Authentifizierung)
+    \item Kontrolle aktueller Logs auf wiederkehrende Fehlerbilder
+\end{itemize}
+
+\textbf{Wartungsbetrieb:}
+\begin{itemize}
+    \item geplante Updates in definierten Zeitfenstern
+    \item Snapshot vor änderungsintensiven Schritten
+    \item strukturierte Nachkontrolle mit Health-Prüfungen
+\end{itemize}
+
+\textbf{Störungsbetrieb:}
+\begin{itemize}
+    \item Priorisierung nach Serviceauswirkung
+    \item schneller Rückfall auf stabile Version bei kritischen Fehlern
+    \item Ursachenanalyse und Dokumentation zur Vermeidung von Wiederholfehlern
+\end{itemize}
+
+Damit ist der Proxmox-Serverbetrieb nicht nur technisch implementiert, sondern auch organisatorisch abgesichert. Gerade für ein verteiltes System mit Edge- und Serveranteilen ist diese Kombination aus Architekturtrennung, Wiederherstellbarkeit und klaren Betriebsabläufen entscheidend für Stabilität im Realbetrieb.
 
 \subsection{Build-Prozess}
 
@@ -544,18 +1227,16 @@ Das Icon stammt aus der Font Awesome Bibliothek:
 \\
 \lstinline[language=HTML]{<i class="fas fa-sign-in-alt"></i>}
 \\
-Bei Klick darauf wird man weitergeleitet zum Pfad:\\ \texttt{https://192.168.20.202/auth/realms/cesc/protocol/openid-connect\\/auth?client\_id=cesc-frontend\&redirect\_uri=https...} 
+Bei Klick darauf wird man weitergeleitet zum Keycloak Auth-Endpunkt:\\
+\texttt{/auth/realms/cesc/protocol/openid-connect/auth} mit Parametern
+\texttt{client\_id=cesc-frontend} und \texttt{redirect\_uri} 
 Unter dieser Url wird der Standard-Login-Dialog von Keycloak geöffnet. Nach erfolgreicher Anmeldung bekommt der User seinen Token, wird automatisch wieder zur vorher besuchten Seite umgeleitet und es werden alle Funktionen der Webseite freigeschaltet.
 
 \subsection{Der Realm}
 Ein Realm in Keycloak ist ein isolierter Sicherheitsbereich. Er umfasst Benutzer, Rollen, Clients und Policies für eine bestimmte Anwendung. Der Realm namens ``cesc'' definiert die gesamte Identifikation und Authorisierung für die Weboberfläche. Zurzeit ist dieser Bereich möglichst klein gehalten, jedoch vollkommen ausreichend. Ein Admin User(herbsthofer) steuert alles, in Zukunft kann man jedoch leicht noch andere Benutzer/Rollen hinzu fügen.
 \subsubsection{Realm Einstellungen}
 
-\begin{lstlisting}[
-    caption=Keycloak Realm Konfiguration,
-    label=lst:realmconfig,
-    basicstyle=\ttfamily\small
-]
+\begin{lstlisting}[caption=Keycloak Realm Konfiguration,label=lst:keycloakrealmconfig,basicstyle=\ttfamily\small]
 {
   "realm": "cesc",
   "enabled": true,
@@ -573,11 +1254,7 @@ Die Zeile \texttt{bruteForceProtected: true} ist eine einfache Absicherung gegen
 Um zukünftigen Admins der Webseite eine leichte und unkomplizierte Anmeldung zu ermöglichen, ist auch das Einloggen mit der E-Mail-Adresse erlaubt.
 
 \subsubsection{Rollen}
-\begin{lstlisting}[
-    caption=Keycloak Realm Konfiguration,
-    label=lst:realmconfig,
-    basicstyle=\ttfamily\small
-]
+\begin{lstlisting}[caption=Keycloak Rollen Konfiguration,label=lst:keycloakrealmroles,basicstyle=\ttfamily\small]
 {
   "roles": {
     "realm": [
@@ -594,11 +1271,7 @@ Um zukünftigen Admins der Webseite eine leichte und unkomplizierte Anmeldung zu
 Der aktuell einzige Benutzer \texttt{``admin''} hat sozusagen uneingeschränkte Rechte. Durch die Zeile \texttt{" clientRole " : false} ist dieser Benutzer auch nicht auf einen bestimmten Client beschränkt, sondern hat im ganzen Realm auf alles Zugriff.
 
 \subsubsection{Benutzer}
-\begin{lstlisting}[
-    caption=Keycloak Realm Konfiguration,
-    label=lst:realmconfig,
-    basicstyle=\ttfamily\small
-]
+\begin{lstlisting}[caption=Keycloak Benutzer Konfiguration,label=lst:keycloakrealmuser,basicstyle=\ttfamily\small]
 {
 "users": [
     {
@@ -618,11 +1291,7 @@ Der aktuell einzige Benutzer \texttt{``admin''} hat sozusagen uneingeschränkte 
 \end{lstlisting}
 Der Zurzeit einzige User \texttt{herbsthofer} erhält durch die Zuweisung der admin Rolle, \texttt{'' realmRoles '' : ['' admin '']} alle Administratorrechte.
 \subsubsection{Clients}
-\begin{lstlisting}[
-    caption=Keycloak Realm Client Konfiguration,
-    label=lst:realmconfig,
-    basicstyle=\ttfamily\small
-]
+\begin{lstlisting}[caption=Keycloak Realm Client Konfiguration,label=lst:keycloakrealmclient,basicstyle=\ttfamily\small]
 {
    "clients": [
     {
@@ -1075,11 +1744,10 @@ Alle Daten werden mithilfe eines FirastoreListeners immer live geladen. Eine Än
 \end{itemize}
 Wie vorher gesagt bietet der Service nicht nur live Daten sondern auch einige Endpunkte um historische Daten für Diagramme zu Laden. Dazu gehören der Temperaturverlauf und der Türkontaktverlauf.  
 \begin{itemize}
-\item \textbf{get:} https://localhost:53488/api/Sensors/history/temperature/{containerId}/{sensorLocation}?days={days}
-\item \textbf{get:} https://localhost:53488/api/Sensors/history/plugs/{containerId}/{plugType}?days={days}
-\item \textbf{get:} https://localhost:53488/api/Sensors/history/appearance/{containerId}?days={days}
-\item \textbf{get:} https://localhost:53488/api/Sensors/history/door/{containerId}?days={days}
-\item \textbf{get:} https://localhost:53488/api/Sensors/history/door/{containerId}?days={days}
+\item \textbf{get:} \texttt{/api/Sensors/history/temperature/\{containerId\}/\{sensorLocation\}?days=\{days\}}
+\item \textbf{get:} \texttt{/api/Sensors/history/plugs/\{containerId\}/\{plugType\}?days=\{days\}}
+\item \textbf{get:} \texttt{/api/Sensors/history/appearance/\{containerId\}?days=\{days\}}
+\item \textbf{get:} \texttt{/api/Sensors/history/door/\{containerId\}?days=\{days\}}
 \end{itemize}
 
 \subsection{Models}
@@ -1319,7 +1987,7 @@ else
     calendarType = c.State.Trim().ToLower() == "upper_austria" ? "standard_5days" : "standard_4days";
     rule = await _calendarService.GetRuleForLocationAsync(calendarType);
     if (rule == null)
-    return NotFound($"Keine Regel fuer Kalender-Typ '{calendarType}' gefunden");
+    return NotFound($"Keine Regel f\u00FCr Kalender-Typ '{calendarType}' gefunden");
 }
 \end{lstlisting}
 

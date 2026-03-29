@@ -68,6 +68,104 @@ Die Vorteile von Proxmox liegen unter anderem darin, dass keine Lizenzkosten anf
 \subsection{Zigbee [Leopold Mistelberger]}
 \setauthor{Leopold Mistelberger}
 
+\subsubsection{Technologische Einordnung}
+
+Zigbee ist ein Funkprotokoll für Sensoren und Aktoren, die wenig Strom verbrauchen sollen. Anders als bei einer einfachen Direktverbindung können Daten über mehrere Geräte weitergegeben werden \cite{csa_zigbee_overview}. Dadurch ist Zigbee gut für IoT-Szenarien mit vielen kleinen Geräten geeignet.
+
+Für CESC passt das gut: In den Baustellencontainern fallen laufend Messwerte an (Temperatur, Luftfeuchte, Türstatus, Anwesenheit). Gleichzeitig müssen Steckdosen für Heizung, Kühlung und Licht zuverlässig geschaltet werden. Dafür braucht man ein Protokoll, das stromsparend und stabil ist und mit verschiedenen Gerätetypen funktioniert.
+
+\subsubsection{Warum Zigbee im CESC-Projekt}
+
+Die Auswahl wurde nicht nur nach Funktionen getroffen, sondern nach den echten Bedingungen im Projekt. Im Vergleich zu anderen Funktechnologien hatte Zigbee folgende Vorteile:
+
+\begin{itemize}
+    \item \textbf{Niedriger Energiebedarf}: Batteriesensoren können über längere Zeit betrieben werden.
+    \item \textbf{Mesh-Fähigkeit}: Das Netz bleibt auch dann stabil, wenn einzelne direkte Funkverbindungen schwanken \cite{digi_zigbee_mesh}.
+    \item \textbf{Herstellerübergreifende Gerätebasis}: Sensoren und Aktoren verschiedener Anbieter können gemeinsam genutzt werden.
+    \item \textbf{Gute Erweiterbarkeit}: Zusätzliche Container oder Sensoren können ohne kompletten Umbau ergänzt werden.
+\end{itemize}
+
+WLAN-Sensoren wären zwar einfach ins IP-Netz einzubinden, verbrauchen aber meist mehr Energie und belasten das Netz stärker. Bluetooth ist für kurze Distanzen gut, skaliert aber bei vielen verteilten Geräten schlechter. Zigbee war hier der beste Mittelweg.
+
+\subsubsection{Netzrollen und Kommunikationsmodell}
+
+Ein Zigbee-Netz hat drei Grundrollen:
+
+\begin{itemize}
+    \item \textbf{Koordinator}: Startet und verwaltet das Netz.
+    \item \textbf{Router}: Geräte mit Stromversorgung, die Daten weiterleiten und so die Reichweite erhöhen.
+    \item \textbf{Endgeräte}: Meist Sensoren mit Batterie; sie senden und empfangen Daten, leiten sie aber nicht weiter.
+\end{itemize}
+
+Diese Aufteilung ist wichtig, weil die Verbindung nicht nur von einem einzigen Funkweg abhängt. In CESC konnten Sensordaten dadurch auch bei schwierigen Bedingungen weiter übertragen werden.
+
+\subsubsection{Sicherheits- und Zuverlässigkeitsaspekte}
+
+Für den produktiven Einsatz zählt nicht nur, dass Daten ankommen, sondern auch Sicherheit und Nachvollziehbarkeit. Zigbee bringt dafür wichtige Grundlagen mit:
+
+\begin{itemize}
+    \item Netzzugang über Pairing- und Join-Mechanismen
+    \item Verschlüsselung auf Protokollebene
+    \item klare Geräteidentität über eindeutige Geräteadressen
+\end{itemize}
+
+In CESC läuft die eigentliche Logik nicht direkt im Zigbee-Netz, sondern in den nachgelagerten Diensten (mqttListener, actionHandler, Firestore, Backend). Das Funknetz übernimmt damit vor allem eine Aufgabe: Zustände und Befehle zuverlässig übertragen.
+
+\subsubsection{Technologische Grenzen von Zigbee}
+
+Trotz der Vorteile ist Zigbee nicht für jedes Problem die perfekte Lösung. Diese Grenzen wurden berücksichtigt:
+
+\begin{itemize}
+    \item Funkqualität ist von baulicher Umgebung und Störquellen im 2.4-GHz-Bereich abhängig.
+    \item Das Netz benötigt einen stabilen Koordinator als zentralen Einstiegspunkt.
+    \item Für größere Installationen steigt der Planungsaufwand bei Kanalwahl, Platzierung und Geräteverwaltung.
+\end{itemize}
+
+Diese ehrliche Abgrenzung ist wichtig: Die Entscheidung für Zigbee basiert auf einer technischen Abwägung und nicht auf Marketing.
+
+\subsubsection{Zigbee2MQTT als Integrationsschicht}
+
+Damit die Daten aus dem Zigbee-Netz im CESC-System einheitlich verarbeitet werden können, wird \textbf{Zigbee2MQTT} eingesetzt. Zigbee2MQTT ist die Brücke zwischen Zigbee und MQTT.
+
+Die Aufgaben sind:
+
+\begin{itemize}
+    \item Entgegennahme von Zigbee-Telemetrie und Übersetzung in MQTT-Nachrichten
+    \item Entgegennahme von MQTT-Steuerkommandos und Rückübersetzung in Zigbee-Befehle
+    \item Vereinheitlichung heterogener Geräte in ein gemeinsames Topic- und Payload-Modell
+\end{itemize}
+
+Damit spricht die Fachlogik nur über MQTT und muss keine gerätespezifischen Zigbee-Details kennen. Das macht das Backend einfacher und besser wartbar.
+
+\subsubsection{Warum Zigbee2MQTT statt direkter Herstellerplattformen}
+
+Viele Hersteller bieten eigene Gateways oder Cloud-Lösungen an. Für kleine Setups reicht das oft. In größeren, verteilten Projekten führt das aber schnell zu Brüchen im System und Abhängigkeit von einem Hersteller. Für CESC war deshalb ein offener Ansatz sinnvoll.
+
+Zigbee2MQTT bringt dafür drei zentrale Vorteile \cite{zigbee2mqtt_docs}:
+
+\begin{itemize}
+    \item \textbf{Herstellerunabhängigkeit}: Geräte verschiedener Marken können gemeinsam genutzt werden.
+    \item \textbf{Lokale Datenhoheit}: Messwerte und Steuerung bleiben im eigenen System statt in einer externen Cloud.
+    \item \textbf{Direkte Kopplung an die CESC-Pipeline}: Die MQTT-Themenstruktur lässt sich gezielt auf Listener, Action-Handler und Dashboard abstimmen \cite{zigbee2mqtt_usage}.
+\end{itemize}
+
+Das bedeutet für den Betrieb: Neue kompatible Geräte können eingebunden werden, ohne die Serverarchitektur komplett zu ändern.
+
+\subsubsection{Einordnung in den Gesamtstack}
+
+Der Kommunikationspfad in CESC lässt sich in vier Ebenen gliedern:
+
+\begin{enumerate}
+    \item \textbf{Feldebene}: Sensoren und Aktoren über Zigbee
+    \item \textbf{Gateway-Ebene}: Zigbee2MQTT auf dem Raspberry Pi
+    \item \textbf{Transportebene}: MQTT-Broker als entkoppelter Message-Bus
+    \item \textbf{Applikationsebene}: Listener, Action-Handler, Datenhaltung und Visualisierung
+\end{enumerate}
+
+Diese Trennung ist ein großer Vorteil: Wenn unten bei der Sensorik etwas geändert wird, muss nicht automatisch alles darüber angepasst werden. Gleichzeitig können neue Dienste ergänzt werden, solange sie das bestehende MQTT-Modell verwenden.
+
+Zusammengefasst ist Zigbee für CESC nicht nur ein Funkstandard, sondern ein passender Baustein für einen erweiterbaren und stromsparenden IoT-Betrieb im Baustellenumfeld \cite{csa_zigbee_overview}.
+
 \subsection{MQTT [Leopold Mistelberger]}
 \setauthor{Leopold Mistelberger}
 
