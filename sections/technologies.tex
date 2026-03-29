@@ -578,11 +578,11 @@ Die Anpassung an die geforderten projektspezifischen Funktionen ist in manchen F
     }
 \end{figure}
 
-ASP.NET Core ist ein modernes, plattformübergreifendes Framework von Microsoft zur Entwicklung von Webanwendungen und APIs. Es ist die Weiterentwicklung des klassischen ASP.NET Frameworks und wurde von Grund auf neu entwickelt, um performanter, modularer und flexibler zu sein.
+ASP.NET Core ist ein modernes, plattformübergreifendes Framework von Microsoft zur Entwicklung von Webanwendungen und APIs. Es ist die Weiterentwicklung des klassischen ASP.NET Frameworks und wurde von Grund auf neu entwickelt, um performanter, modularer und flexibler zu sein \cite{aspnet_core_overview}.
 
 \subsubsection{Grundlagen und Eigenschaften}
 
-ASP.NET Core ist ein \textbf{Open-Source Framework}, das auf der .NET-Plattform basiert. Im Gegensatz zu seinem Vorgänger läuft ASP.NET Core nicht nur auf Windows, sondern auch auf \textbf{Linux und macOS}, was es zu einer idealen Wahl für containerisierte Anwendungen macht.
+ASP.NET Core ist ein \textbf{Open-Source Framework}, das auf der .NET-Plattform basiert. Im Gegensatz zu seinem Vorgänger läuft ASP.NET Core nicht nur auf Windows, sondern auch auf \textbf{Linux und macOS}, was es zu einer idealen Wahl für containerisierte Anwendungen macht \cite{aspnet_core_overview}.
 
 Die wichtigsten Merkmale von ASP.NET Core sind:
 
@@ -596,21 +596,21 @@ Die wichtigsten Merkmale von ASP.NET Core sind:
 
 \subsubsection{C\# als Backend-Sprache}
 
-Die Programmiersprache \textbf{C\#} (C-Sharp) ist eine moderne, objektorientierte Sprache, die speziell für die .NET-Plattform entwickelt wurde. Sie kombiniert die Leistungsfähigkeit von C++ mit der Einfachheit von Java.
+Die Programmiersprache \textbf{C\#} (C-Sharp) ist eine moderne, objektorientierte Sprache, die speziell für die .NET-Plattform entwickelt wurde \cite{csharp_docs}.
 
 Vorteile von C\# für Backend-Entwicklung:
 
 \begin{itemize}
     \item \textbf{Type Safety:} Durch statische Typisierung werden viele Fehler bereits zur Compile-Zeit erkannt, nicht erst zur Laufzeit.
-    \item \textbf{Async/Await Pattern:} Native Unterstützung für asynchrone Programmierung, was besonders bei I/O-intensiven Operationen wie Datenbankzugriffen wichtig ist.
-    \item \textbf{LINQ (Language Integrated Query):} Ermöglicht das einfache Filtern und Transformieren von Datensammlungen direkt in C\#.
+    \item \textbf{Async/Await Pattern:} Native Unterstützung für asynchrone Programmierung, was besonders bei I/O-intensiven Operationen wie Datenbankzugriffen wichtig ist \cite{csharp_async}.
+    \item \textbf{LINQ (Language Integrated Query):} Ermöglicht das einfache Filtern und Transformieren von Datensammlungen direkt in C\# \cite{csharp_linq}.
     \item \textbf{Moderne Sprachfeatures:} Pattern Matching, Records, Nullable Reference Types und viele weitere Features, die den Code sauberer und sicherer machen.
     \item \textbf{Große Community:} Als etablierte Enterprise-Sprache gibt es umfangreiche Dokumentation und Community-Support.
 \end{itemize}
 
 \subsubsection{RESTful API Architektur}
 
-Das Backend des CESC-Projekts ist als \textbf{REST API} (Representational State Transfer) konzipiert. REST ist ein Architekturstil für verteilte Systeme, der auf HTTP-Methoden basiert:
+Das Backend des CESC-Projekts ist als \textbf{REST API} (Representational State Transfer) konzipiert. REST ist ein Architekturstil für verteilte Systeme, der auf HTTP-Methoden basiert \cite{fielding_rest}:
 
 \begin{itemize}
     \item \textbf{GET:} Daten abrufen (z.B. Container-Informationen, Sensordaten)
@@ -619,7 +619,7 @@ Das Backend des CESC-Projekts ist als \textbf{REST API} (Representational State 
     \item \textbf{DELETE:} Ressourcen löschen (z.B. Kalenderregel entfernen)
 \end{itemize}
 
-Die API kommuniziert über \textbf{JSON} (JavaScript Object Notation) als Datenformat, da dies sowohl menschen- als auch maschinenlesbar ist und sich perfekt für die Kommunikation zwischen Frontend und Backend eignet.
+Die API kommuniziert über \textbf{JSON} (JavaScript Object Notation) als Datenformat, da dies sowohl menschen- als auch maschinenlesbar ist und sich perfekt für die Kommunikation zwischen Frontend und Backend eignet \cite{rfc8259_json}.
 
 \subsubsection{Warum ASP.NET Core für CESC?}
 
@@ -634,7 +634,7 @@ Die Wahl von ASP.NET Core für das Backend der CESC-Anwendung basiert auf mehrer
     
     \item \textbf{Integration mit Keycloak:} Die eingebaute JWT-Authentication in ASP.NET Core vereinfacht die Integration mit dem Keycloak Identity Provider erheblich.
     
-    \item \textbf{Zukunftssicherheit:} Microsoft investiert kontinuierlich in .NET und ASP.NET Core. Die aktuell verwendete Version .NET 8.0 hat Long-Term-Support bis November 2026.
+    \item \textbf{Zukunftssicherheit:} Microsoft investiert kontinuierlich in .NET und ASP.NET Core. Die aktuell verwendete Version .NET 8.0 hat Long-Term-Support bis November 2026 \cite{dotnet_support_policy}.
     
     \item \textbf{Entwickler-Produktivität:} Durch die starke Typisierung, IntelliSense-Unterstützung und umfangreiche Tooling-Unterstützung in Visual Studio und VS Code können Features schneller und fehlerfreier entwickelt werden.
 \end{itemize}
@@ -662,7 +662,7 @@ Swagger ist ein Framework zur Dokumentation und zum Testen von REST APIs. Es gen
 
 \subsubsection{Beschreibung und Zweck}
 
-OpenAPI (früher bekannt als Swagger) ist ein Standard zur Beschreibung von REST APIs. Die Spezifikation definiert, wie eine API strukturiert ist, welche Endpoints existieren und welche Daten sie erwarten und zurückgeben. In ASP.NET Core wird dies durch die \textbf{Swashbuckle.AspNetCore} Bibliothek realisiert.
+OpenAPI (früher bekannt als Swagger) ist ein Standard zur Beschreibung von REST APIs. Die Spezifikation definiert, wie eine API strukturiert ist, welche Endpoints existieren und welche Daten sie erwarten und zurückgeben \cite{openapi_spec}. In ASP.NET Core wird dies durch die \textbf{Swashbuckle.AspNetCore} Bibliothek realisiert \cite{swashbuckle_docs}.
 
 Die Hauptvorteile von Swagger sind:
 
@@ -700,7 +700,7 @@ Swagger visualisiert die verschiedenen HTTP-Methoden farblich, um sie auf einen 
 
 \subsubsection{Authentication in Swagger}
 
-Da die CESC-API durch Keycloak geschützt ist, muss auch in Swagger ein JWT-Token für geschützte Endpoints angegeben werden. Swagger bietet hierfür einen \textbf{\glqq Authorize\grqq}-Button, über den ein Bearer-Token eingegeben werden kann.
+Da die CESC-API durch Keycloak geschützt ist, muss auch in Swagger ein JWT-Token für geschützte Endpoints angegeben werden \cite{rfc7519_jwt}. Swagger bietet hierfür einen \textbf{\glqq Authorize\grqq}-Button, über den ein Bearer-Token eingegeben werden kann.
 
 Nach erfolgreicher Anmeldung bei Keycloak kann das erhaltene JWT-Token in Swagger eingetragen werden. Alle nachfolgenden API-Aufrufe werden dann automatisch mit diesem Token authentifiziert.
 
@@ -725,7 +725,7 @@ Neben dem verwendeten Framework spielen im Backend auch grundlegende Sicherheits
 
 \subsubsection{JWT-Bearer-Authentifizierung im Backend}
 
-Für geschützte API-Endpunkte wird im Backend eine JWT-Bearer-Authentifizierung eingesetzt. Dabei wird bei jeder Anfrage geprüft, ob ein gültiges Bearer-Token mitgesendet wurde. Nur bei erfolgreicher Prüfung wird der Zugriff auf geschützte Funktionen erlaubt.
+Für geschützte API-Endpunkte wird im Backend eine JWT-Bearer-Authentifizierung eingesetzt. Dabei wird bei jeder Anfrage geprüft, ob ein gültiges Bearer-Token mitgesendet wurde. Nur bei erfolgreicher Prüfung wird der Zugriff auf geschützte Funktionen erlaubt \cite{aspnet_jwt_bearer}.
 
 Zusätzlich können über Rollen im Token bestimmte Berechtigungen gesteuert werden. Dadurch ist es möglich, sensible Funktionen gezielt nur für berechtigte Benutzer freizugeben.
 
@@ -750,7 +750,7 @@ Dadurch bleibt der Code übersichtlicher und Änderungen an der Datenhaltung kö
 
 \subsubsection{CORS als API-Schutzmechanismus}
 
-Da Frontend und Backend in unterschiedlichen Laufzeitumgebungen betrieben werden können, wird im Backend CORS (Cross-Origin Resource Sharing) verwendet. Damit wird kontrolliert, welche Ursprünge auf die API zugreifen dürfen.
+Da Frontend und Backend in unterschiedlichen Laufzeitumgebungen betrieben werden können, wird im Backend CORS (Cross-Origin Resource Sharing) verwendet. Damit wird kontrolliert, welche Ursprünge auf die API zugreifen dürfen \cite{aspnet_cors}.
 
 So wird verhindert, dass beliebige externe Webanwendungen ungeprüft Anfragen an die Schnittstelle senden können. Gleichzeitig bleibt die Kommunikation zwischen den vorgesehenen Systemkomponenten funktionsfähig.
 
@@ -770,13 +770,13 @@ So wird verhindert, dass beliebige externe Webanwendungen ungeprüft Anfragen an
 
     {\footnotesize
     Quelle: \glqq Firebase Logo.svg\grqq, Wikimedia Commons: \url{https://commons.wikimedia.org/wiki/File:Firebase_Logo.svg}. 
-    Lizenzhinweis: PD-textlogo; zusaetzlich markenrechtlich geschuetzt (Google LLC). Aenderungen: keine.
+    Lizenzhinweis: PD-textlogo; zusätzlich markenrechtlich geschützt (Google LLC). Änderungen: keine.
     }
 \end{figure}
 
 \subsubsection{NoSQL-Konzept und Dokumentstruktur}
 
-Firebase Firestore ist eine cloudbasierte, dokumentenorientierte NoSQL-Datenbank von Google. Im Unterschied zu relationalen Datenbanken werden Daten nicht in starren Tabellenstrukturen gespeichert, sondern in \textbf{Collections} und \textbf{Dokumenten}. Dokumente bestehen aus Schlüssel-Wert-Paaren und können flexibel aufgebaut werden.
+Firebase Firestore ist eine cloudbasierte, dokumentenorientierte NoSQL-Datenbank von Google \cite{firestore_overview}. Im Unterschied zu relationalen Datenbanken werden Daten nicht in starren Tabellenstrukturen gespeichert, sondern in \textbf{Collections} und \textbf{Dokumenten}. Dokumente bestehen aus Schlüssel-Wert-Paaren und können flexibel aufgebaut werden \cite{firestore_data_model}.
 
 Die grundlegende Struktur in Firestore ist hierarchisch:
 
@@ -790,14 +790,14 @@ Für die technologische Einordnung sind vor allem folgende Eigenschaften relevan
 
 \begin{itemize}
     \item \textbf{Schema-Flexibilität:} Dokumente können bei Bedarf um zusätzliche Felder erweitert werden.
-    \item \textbf{Skalierbarkeit:} Firestore ist als Managed-Service für verteilte Anwendungen ausgelegt.
-    \item \textbf{Echtzeitfähigkeit:} Datenänderungen können über Listener nahezu in Echtzeit an Clients weitergegeben werden.
+    \item \textbf{Skalierbarkeit:} Firestore ist als Managed-Service für verteilte Anwendungen ausgelegt \cite{firestore_best_practices}.
+    \item \textbf{Echtzeitfähigkeit:} Datenänderungen können über Listener nahezu in Echtzeit an Clients weitergegeben werden \cite{firestore_realtime}.
     \item \textbf{Plattformintegration:} Es existieren SDKs für Web, Mobile und Server-Anwendungen.
 \end{itemize}
 
-Für CESC passt dieser Ansatz gut, weil unterschiedliche Gerätetypen und Messwerte in einem einheitlichen NoSQL-Modell verwaltet werden können, ohne dass bei jeder kleinen Datenänderung ein starres Schema angepasst werden muss.
+Für CESC ist dieser Ansatz vor allem deshalb geeignet, weil unterschiedliche Gerätetypen, Zustände und Messwerte in einem einheitlichen NoSQL-Modell verwaltet werden können, ohne bei jeder Erweiterung ein starres Gesamtschema zu ändern.
 
-Grenzen liegen vor allem bei sehr komplexen relationalen Abfragen (z. B. klassische Mehrfach-Joins), für die relationale Systeme häufig besser geeignet sind. Für die im Projekt benötigte Dokument- und Zustandsdatenhaltung überwiegen jedoch die Vorteile des Firestore-Modells.
+Grenzen liegen bei sehr komplexen, stark Join-orientierten Abfragen. Für die im Projekt benötigte Dokument- und Zustandsdatenhaltung überwiegen jedoch die Vorteile des Firestore-Modells.
 
 Die folgende Abbildung zeigt die grundlegende Struktur von Collections, Dokumenten und Feldern, wie sie typischerweise in Firestore modelliert wird.
 
@@ -812,7 +812,7 @@ Die folgende Abbildung zeigt die grundlegende Struktur von Collections, Dokument
     Quelle: Firebase-Dokumentation (Cloud Firestore): \url{https://firebase.google.com/docs/firestore}. 
     Referenzgrafik: \url{https://firebase.google.com/static/docs/firestore/images/structure-data.png}. 
     Lizenzhinweis: Dokumentationsinhalte unter CC BY 4.0, sofern nicht anders angegeben (\url{https://creativecommons.org/licenses/by/4.0/}).
-    Aenderungen: keine.
+    Änderungen: keine.
     }
 \end{figure}
 
@@ -827,11 +827,11 @@ Auf dieser Basis lässt sich Firestore gut einem relationalen Ansatz gegenübers
         \hline
         Datenmodell & Tabellen, Zeilen, festes Schema & Collections, Dokumente, flexible Felder \\
         \hline
-        Skalierung & Oft vertikal; horizontale Skalierung zusaetzlich aufwendig & Managed-Service mit horizontaler Skalierung \\
+        Skalierung & Oft vertikal; horizontale Skalierung zusätzlich aufwendig & Managed-Service mit horizontaler Skalierung \\
         \hline
-        Abfrageprofil & Stark fuer relationale Abfragen und Joins & Stark fuer dokumentorientierte, indexbasierte Abfragen \\
+        Abfrageprofil & Stark für relationale Abfragen und Joins & Stark für dokumentorientierte, indexbasierte Abfragen \\
         \hline
-        Passung fuer CESC & Vorteilhaft bei komplexen, stark relationalen Datenmodellen & Vorteilhaft fuer heterogene IoT-Mess- und Zustandsdaten \\
+        Passung für CESC & Vorteilhaft bei komplexen, stark relationalen Datenmodellen & Vorteilhaft für heterogene IoT-Mess- und Zustandsdaten \\
         \hline
     \end{tabular}
     \caption{Technologischer Vergleich: Relationale Datenbank und Firestore}
@@ -840,13 +840,80 @@ Auf dieser Basis lässt sich Firestore gut einem relationalen Ansatz gegenübers
 
 \subsubsection{Collections und Dokumente im Projekt}
 
+Für das CESC-System wird das Firestore-Modell in fachliche Bereiche gegliedert, damit Sensordaten, Zustände und organisatorische Informationen klar getrennt bleiben. Die Struktur orientiert sich dabei nicht an technischen Klassen, sondern an realen Objekten im Projektumfeld, etwa Baustellen, Containern, Messwerten und Schaltzuständen.
+
+Ein wesentlicher Vorteil dieses Ansatzes liegt darin, dass jede Collection einen klaren Verantwortungsbereich hat. Dadurch bleibt das Datenmodell auch dann verständlich, wenn im Laufe des Projekts neue Gerätetypen oder zusätzliche Felder dazukommen. Bestehende Dokumente müssen dabei nicht vollständig umgebaut werden, sondern können schrittweise erweitert werden.
+
+Für die technologische Einordnung sind dabei vor allem folgende Punkte relevant:
+
+\begin{itemize}
+    \item \textbf{Fachliche Trennung:} Unterschiedliche Datenarten (z. B. Stammdaten, Messdaten, Zustände) werden in eigenen Collection-Bereichen geführt.
+    \item \textbf{Aktuell vs. historisch:} Zeitreihen- und Verlaufsdaten werden von aktuellen Gerätezuständen logisch getrennt, damit sowohl Dashboard-Sichten als auch Auswertungen effizient unterstützt werden.
+    \item \textbf{Messdaten vs. Steueraufträge:} Sensor- und Zustandsdaten werden getrennt von auszuführenden Schaltbefehlen geführt, wodurch Datenerfassung und Aktorsteuerung sauber entkoppelt bleiben.
+    \item \textbf{Zeitliche Nachvollziehbarkeit:} Zeitbezogene Informationen können als eigene Dokumente abgelegt und über Zeitstempel geordnet werden.
+    \item \textbf{Erweiterbarkeit:} Neue Felder oder zusätzliche Messgrößen lassen sich ohne starre Schema-Migration integrieren.
+\end{itemize}
+
+Damit unterstützt die Dokumentstruktur genau jene Anforderungen, die im CESC-Kontext im Vordergrund stehen: heterogene IoT-Daten, laufende Erweiterbarkeit und eine klare, wartbare fachliche Struktur.
+
 \subsubsection{Begründung der Technologiewahl}
+
+Der wichtigste Grund für die Wahl von Firebase Firestore ist die bereits vorhandene Praxiserfahrung der Firma mit dieser Technologie. Dadurch ist im Unternehmen bereits Grundwissen vorhanden, was Einarbeitung, Abstimmung und spätere Wartung deutlich erleichtert.
+
+Ergänzend dazu ist Firestore auch fachlich für CESC geeignet. Im Projekt fallen unterschiedliche Datentypen an, von relativ stabilen Stammdaten bis hin zu laufend eintreffenden Mess- und Zustandsdaten.
+
+Ein zentraler Aspekt ist die hohe Flexibilität bei der Datenstruktur. Gerade in einem IoT-nahen Umfeld ändern sich Anforderungen während der Entwicklung häufig, etwa durch neue Sensorwerte oder zusätzliche Auswertungsfelder. Firestore erlaubt hier eine schrittweise Erweiterung.
+
+Hinzu kommt die technische Eignung für verteilte, webbasiert genutzte Systeme. Firestore ist als Managed-Service auf Skalierbarkeit und hohe Verfügbarkeit ausgelegt, was für CESC relevant ist, da Daten aus mehreren Containern zusammengeführt und konsistent bereitgestellt werden müssen.
+
+Gegenüber einer klassischen relationalen Datenbank bestehen zwar Einschränkungen bei komplexen Join-lastigen Abfragen. Für den konkreten Anwendungsfall überwiegen jedoch die Vorteile des dokumentenorientierten Ansatzes deutlich: klare fachliche Struktur, gute Erweiterbarkeit und passende Eigenschaften für zeitnahe Sensor-, Zustands- und Steuerdaten.
+
+Insgesamt ist Firestore damit technologisch eine stimmige Wahl für CESC: einerseits wegen der vorhandenen Erfahrung im Unternehmen als Hauptgrund, andererseits wegen der passenden technischen Eigenschaften für die Projektanforderungen.
 
 \subsection{Datenzugriffskonzepte im Backend [Timon Schmalzer]}
 \setauthor{Timon Schmalzer}
 
 \subsubsection{Firestore SDK und Datenzugriff im Backend}
 
+Für den serverseitigen Zugriff auf Firestore wird im Backend ein offizielles Firestore-SDK verwendet. Dadurch erfolgt die Datenkommunikation über eine standardisierte, von Google unterstützte Schnittstelle, anstatt über selbst definierte direkte HTTP-Aufrufe \cite{firestore_dotnet_sdk}.
+
+Aus technologischer Sicht bringt dieser Ansatz mehrere Vorteile:
+
+\begin{itemize}
+    \item \textbf{Konsistente Schnittstelle:} Lese- und Schreibzugriffe folgen einem einheitlichen API-Modell.
+    \item \textbf{Wartbarkeit:} Änderungen an Firestore-Funktionen werden über das SDK nachvollziehbar versioniert und dokumentiert.
+    \item \textbf{Sicherheitsintegration:} Authentifizierte Serverzugriffe können über etablierte Service-Mechanismen abgebildet werden.
+    \item \textbf{Plattformstabilität:} Das SDK ist auf typische Backend-Anwendungsfälle abgestimmt und reduziert Integrationsaufwand.
+\end{itemize}
+
+Für CESC ist das besonders relevant, weil die Datenbank nicht isoliert genutzt wird, sondern als zentraler Knoten zwischen Backend-API, Sensorwertverarbeitung und Steueraufträgen dient. Ein standardisierter Datenzugriff unterstützt dabei eine stabile Weiterentwicklung, auch wenn sich Datenmodelle oder Auswertungsanforderungen im Projektverlauf erweitern.
+
 \subsubsection{Asynchrone Datenverarbeitung}
 
+Die Datenverarbeitung rund um Firestore erfolgt im CESC-Kontext nicht nur in synchronen Anfrage-Antwort-Mustern, sondern auch asynchron. Das ist technologisch wichtig, weil Sensordaten, Statusänderungen und Schaltaufträge zeitlich entkoppelt auftreten und nicht immer im selben Verarbeitungsschritt abgeschlossen werden.
+
+Ein asynchroner Ansatz bietet dafür mehrere Vorteile:
+
+\begin{itemize}
+    \item \textbf{Entkopplung von Teilsystemen:} Datenerfassung, API-Nutzung und Aktorsteuerung können unabhängig voneinander arbeiten.
+    \item \textbf{Bessere Lastverteilung:} Schreib- und Lesevorgänge lassen sich über die Zeit verteilen, anstatt in einem einzigen synchronen Ablauf zu bündeln.
+    \item \textbf{Robuster Betrieb:} Kurzzeitige Verzögerungen einzelner Komponenten führen nicht sofort zum Stillstand des Gesamtsystems.
+    \item \textbf{Skalierbarkeit im Alltag:} Bei mehreren gleichzeitigen Ereignissen bleibt die Verarbeitung nachvollziehbar und erweiterbar.
+\end{itemize}
+
+Für CESC passt diese Verarbeitungsform besonders gut, weil laufende Messdaten und steuernde Aktionen unterschiedliche zeitliche Charakteristika haben. Die asynchrone Datenverarbeitung unterstützt damit eine stabile Systemreaktion im Echtbetrieb, ohne die Architektur unnötig zu verkomplizieren.
+
 \subsubsection{Konsistenzanforderungen im Überblick}
+
+Neben Flexibilität und Skalierbarkeit ist für CESC auch die Konsistenz der Daten ein zentrales Qualitätskriterium. Für den praktischen Betrieb ist dabei besonders wichtig, dass aktuelle Zustände, historische Messwerte und ausgelöste Steueraktionen fachlich stimmig zueinander bleiben.
+
+Im technologischen Kontext von Firestore bedeutet Konsistenz vor allem:
+
+\begin{itemize}
+    \item \textbf{Eindeutige Zuordnung:} Daten müssen eindeutig einem Container, Sensor oder Aktor zuordenbar bleiben.
+    \item \textbf{Zeitliche Plausibilität:} Zeitstempel und Ereignisreihenfolgen sollen nachvollziehbar und auswertbar sein.
+    \item \textbf{Klare Zustandsführung:} Der aktuelle Systemzustand darf nicht mit historischen Verlaufsdaten vermischt werden.
+    \item \textbf{Nachvollziehbare Steuerpfade:} Schaltvorgänge müssen fachlich prüfbar und im Datenmodell transparent abbildbar sein.
+\end{itemize}
+
+Für CESC ist diese Form der Konsistenz entscheidend, weil die Webanwendung auf verlässliche Zustandsdaten angewiesen ist und betriebliche Entscheidungen auf diesen Informationen basieren. Firestore bietet dafür eine geeignete Grundlage, wenn Datenmodell, Collection-Struktur und Zugriffsregeln konsequent entlang der fachlichen Anforderungen aufgebaut werden \cite{firestore_transactions,firestore_best_practices}.
