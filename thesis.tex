@@ -50,6 +50,12 @@
 
 \pagestyle{plain}
 
+\begin{spacing}{1}
+\chapter*{Beitragsübersicht}
+\addcontentsline{toc}{chapter}{Beitragsübersicht}
+\end{spacing}
+\input{./sections/contributions}
+
 \IfStrEq{\thesislang}{de}
 {
 	\renewcommand{\lstlistlistingname}{Quellcodeverzeichnis}
@@ -71,11 +77,6 @@
 \input{./sections/introduction}
 
 \begin{spacing}{1}
-\chapter{Umfeldanalyse}
-\end{spacing}
-\input{./sections/related_work}
-
-\begin{spacing}{1}
 \chapter{Technologien}\label{chapter:tech}
 \end{spacing}
 \input{./sections/technologies}
@@ -90,12 +91,16 @@
 \end{spacing}
 \input{./sections/summary}
 
+% Verhindert Leerseiten vor Kapiteln im hinteren Dokumentteil (Glossar/Literatur/Verzeichnisse)
+\KOMAoptions{open=any}
+
 \newpage
 \pagenumbering{Roman}
 \setcounter{page}{\value{RPages}}
 \input{glossary}
 %\setlength{\glsdescwidth}{0.8\linewidth}
 \glsnogroupskiptrue
+\glsaddall
 \IfStrEq{\thesislang}{de}
 {
 	\printglossary[title=Glossar,toctitle=Glossar] %,style=long]
@@ -116,8 +121,5 @@
 \listoffigures
 \listoftables
 \lstlistoflistings
-\appendix
-\addchap{Anhang}
-\input{./sections/appendix}
 \end{document}
 

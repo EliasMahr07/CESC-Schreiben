@@ -1,31 +1,53 @@
-Aufzählungen:
+\setauthor{Projektteam}
 
-\begin{compactitem}
-    \item Itemize Level 1
-    \begin{compactitem}
-        \item Itemize Level 2
-        \begin{compactitem}
-            \item Itemize Level 3 (vermeiden)
-        \end{compactitem}
-    \end{compactitem}
-\end{compactitem}
+\section{Ergebnisse und Zielerreichung}
 
-\begin{compactenum}
-    \item Enumerate Level 1
-    \begin{compactenum}
-        \item Enumerate Level 2
-        \begin{compactenum}
-            \item Enumerate Level 3 (vermeiden)
-        \end{compactenum}
-    \end{compactenum}
-\end{compactenum}
+Im Rahmen der Diplomarbeit wurde mit CESC ein funktionierender Prototyp für die Überwachung und Steuerung von Baustellencontainern umgesetzt. Das System verbindet lokale Sensorik und Aktorik im Container mit einer serverseitigen Infrastruktur und einer Webanwendung.
 
-\begin{compactdesc}
-    \item[Desc] Level 1
-    \begin{compactdesc}
-        \item[Desc] Level 2 (vermeiden)
-        \begin{compactdesc}
-            \item[Desc] Level 3 (vermeiden)
-        \end{compactdesc}
-    \end{compactdesc}
-\end{compactdesc}
+Die wichtigsten Zielsetzungen wurden erreicht:
+
+\begin{itemize}
+    \item Erfassung zentraler Zustände (Temperatur, Luftfeuchte, Türstatus, Anwesenheit)
+    \item Steuerung von Heizung, Kühlung und Beleuchtung über definierte Befehlswege
+    \item Nachvollziehbare Protokollierung und Visualisierung der relevanten Betriebsdaten
+    \item Sichere Zugriffe über Rollen- und Berechtigungskonzepte
+    \item Betriebskonzept mit Containerisierung, Deployment, Logging und Backup/Restore
+\end{itemize}
+
+Damit konnte gezeigt werden, dass ein praxisnahes IoT-Konzept für Baustellencontainer technisch und organisatorisch umsetzbar ist.
+
+\section{Was wir gelernt haben}
+
+Aus dem Projekt haben wir mehrere fachliche und organisatorische Erkenntnisse mitgenommen:
+
+\begin{itemize}
+    \item \textbf{Systemdenken ist entscheidend:} Einzelne Komponenten funktionieren erst dann zuverlässig, wenn Datenfluss, Verantwortlichkeiten und Schnittstellen sauber aufeinander abgestimmt sind.
+    \item \textbf{Betrieb ist mehr als Entwicklung:} Themen wie Rollout, Monitoring, Logs, Backup und Recovery sind für den realen Einsatz genauso wichtig wie der eigentliche Code.
+    \item \textbf{Klare Schnittstellen sparen Zeit:} Einheitliche Topics, Payloads und Datenmodelle haben die Integration zwischen Sensorik, Backend und Frontend deutlich vereinfacht.
+    \item \textbf{Sicherheit muss früh geplant werden:} Zugriffsregeln, VPN, Rollen und Netzwerksegmentierung sind wirksamer, wenn sie von Beginn an eingeplant werden.
+    \item \textbf{Teamarbeit braucht klare Zuständigkeiten:} Mit eindeutiger Kapitel- und Modulverantwortung konnten wir parallel arbeiten und trotzdem konsistente Ergebnisse liefern.
+\end{itemize}
+
+\section{Fehler und Verbesserungen}
+
+Nicht alle Entscheidungen waren von Anfang an optimal. Die wichtigsten Lernpunkte aus Fehlern waren:
+
+\begin{itemize}
+    \item \textbf{Unterschätzter Integrationsaufwand:} Die Verbindung von Hardware, MQTT, Backend und UI war aufwendiger als zu Projektbeginn angenommen.
+    \item \textbf{Zu späte Standardisierung einzelner Benennungen:} Unterschiedliche Bezeichnungen in frühen Projektphasen führten zu zusätzlichem Abstimmungsaufwand.
+    \item \textbf{Zu geringe Anfangsdokumentation bei Teilkomponenten:} Fehlende Kurz-Dokumentation in frühen Versionen hat spätere Wartung erschwert.
+\end{itemize}
+
+Für eine Folgeversion würden wir daher technische Konventionen früher verbindlich festlegen, mehr automatisierte Tests einplanen und die Betriebsdokumentation parallel zur Implementierung führen.
+
+\section{Einsatz von AI im Projekt}
+
+AI wurde als unterstützendes Werkzeug verwendet, nicht als Ersatz für eigene technische Entscheidungen. Der Einsatz erfolgte vor allem für:
+
+\begin{itemize}
+    \item Formulierungsvorschläge und sprachliche Überarbeitung
+    \item Strukturierung von Abschnitten und Vergleich von Varianten
+    \item Unterstützung bei Fehlersuche in LaTeX und bei der Dokumentationsqualität
+\end{itemize}
+
+Alle AI-Ausgaben wurden fachlich geprüft, an das Projekt angepasst und nur nach technischer Validierung übernommen. Details zu verwendeter AI, Modell, Datum und Beispiel-Prompts sind im Literaturverzeichnis dokumentiert \cite{github_copilot_gpt53_2026,openai_chatgpt_2026}.

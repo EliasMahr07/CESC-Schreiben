@@ -1,4 +1,4 @@
-\section{Containerarchitektur [Leopold Mistelberger]}
+\section{Containerarchitektur}
 \setauthor{Leopold Mistelberger}
 
 \begin{figure}[H]
@@ -14,6 +14,13 @@ Die Containerarchitektur beschreibt den Aufbau und die Organisation der technisc
 \subsection{Physischer Prototypaufbau}
 
 Zur praktischen Validierung der Containerarchitektur wurde ein physischer Prototyp im Maßstab 1:7 aufgebaut. Der mechanische Aufbau erfolgte mit Bosch-Profilen als tragende Struktur. Dadurch konnte die spätere Positionierung von Sensorik, Aktorik und Verkabelung realitätsnah getestet werden, ohne direkt in voller Containergröße arbeiten zu müssen.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{pics/container/ganzeBaustellencontainer.JPEG}
+    \caption{Dokumentation des physischen Prototypaufbaus}
+    \label{fig:prototyp-gesamtansichten}
+\end{figure}
 
 Ein zentraler Teil der Umsetzung war die mechanische Eigenfertigung: Für mehrere Verbindungspunkte wurden die Gewinde im Team selbst hergestellt. Dadurch war es möglich, die Halterungen passgenau für die geplanten Komponenten auszuführen und den Aufbau schrittweise zu optimieren.
 
@@ -50,6 +57,13 @@ Die Broker-Konfiguration ist in \texttt{config.json} zentral definiert (Host \te
 
 Die Kommunikation zwischen Feldgeräten und Raspberry Pi erfolgt über ein lokales Zigbee-Mesh. Zigbee wurde im Projekt gewählt, weil das Protokoll auf geringe Leistungsaufnahme, Mesh-Routing und Interoperabilität zwischen Herstellern ausgelegt ist. Diese Eigenschaften sind für batteriebetriebene Sensoren in verteilten Containerinstallationen relevant \cite{csa_zigbee_overview}.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pics/container/RaspiMitDongleUndRouter.JPEG}
+    \caption{Raspberry Pi mit Zigbee-Dongle und Router im Testaufbau}
+    \label{fig:raspi-dongle-router}
+\end{figure}
+
 
 \subsection{Sensorik}
 
@@ -72,6 +86,42 @@ In der Implementierung sind die Sensoren eindeutig über Prefixe und IDs abgebil
 \end{itemize}
 
 Die Feldzuordnung zwischen MQTT-Payload und Datenbankschema wird in \texttt{config.json} über \texttt{properties} definiert. Beispiele: \texttt{state} $\rightarrow$ \texttt{status}, \texttt{contact} $\rightarrow$ \texttt{contact}, \texttt{temperature} $\rightarrow$ \texttt{temperature}. Dadurch kann ein Sensortyp ohne Codeänderung erweitert werden, solange Prefix und Mapping in der Konfiguration ergänzt werden.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/TürsensorClosed.JPEG}
+        \caption{Türsensor im Zustand geschlossen}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/TürsensorOpen.JPEG}
+        \caption{Türsensor im Zustand offen}
+    \end{subfigure}
+    \caption{Zustandsdarstellung des Türkontaktsensors}
+    \label{fig:tuersensor-zustaende}
+\end{figure}
+
+Die beiden Hardwarezustände aus Abbildung~\ref{fig:tuersensor-zustaende} werden 1:1 in das Dashboard übernommen. Das heißt: \textit{closed} am Türsensor entspricht dem geschlossenen Türstatus im Dashboard, und \textit{open} am Türsensor entspricht dem offenen Türstatus.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/InnenTemperatursensorEingeschalten.JPEG}
+        \caption{Innenklimasensor im aktiven Betrieb}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/InnentemperatursensorAusgeschalten.JPEG}
+        \caption{Innenklimasensor ohne aktive Anzeige}
+    \end{subfigure}
+    \caption{Praktische Sensorintegration im Prototyp}
+    \label{fig:klimasensoren-prototyp}
+\end{figure}
 
 Der \texttt{mqttListener} speichert nicht jede empfangene Nachricht. Stattdessen reduziert ein technischer Filter die Schreiblast:
 
@@ -133,6 +183,13 @@ Die Aktoren sind in der Konfiguration als \texttt{plug-heating}, \texttt{plug-co
 
 Beispiel: Für \texttt{plugType=heating} und \texttt{containerId=1} wird auf \texttt{zigbee2mqtt/zb\_plug\_heating\_1/set} publiziert.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{pics/container/InnenTermpertursensorUndTürsensor.JPEG}
+    \caption{Gemeinsamer Einbau von Sensorik im Containerbereich}
+    \label{fig:sensorik-kombiniert}
+\end{figure}
+
 \textbf{Beispiel 2: Action-Dokument und resultierendes MQTT-Kommando}
 
 \begin{lstlisting}[language=bash,caption={Beispiel für Firestore-Action und daraus erzeugtes MQTT-Steuerkommando},label={lst:action_to_mqtt_example},basicstyle=\ttfamily\small]
@@ -159,6 +216,94 @@ Für die sicherheitsrelevante Überwachung ist eine \textbf{4K-Kamera} installie
 
 Die Kamera ist in der Architektur als eigenständige Sicherheitskomponente zu betrachten und nicht Teil des Zigbee-Datenpfads. Der aktuelle Projektstand nutzt Türkontakt und Presence Detector zur Erkennung sicherheitsrelevanter Ereignisse außerhalb der Betriebszeit. Eine automatische Alarmauslösung ist derzeit noch nicht implementiert; Ereignisse werden protokolliert und können im Dashboard ausgewertet werden.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{pics/container/KameraUndBewegungssensor.JPEG}
+    \caption{Kamera und Bewegungssensor im Hardwareaufbau}
+    \label{fig:kamera-bewegungssensor}
+\end{figure}
+
+\subsection{Dashboard-Visualisierung in der Umsetzung}
+
+Zur praktischen Validierung wurden die erfassten Sensorzustände und Schaltinformationen parallel im Home-Assistant-Dashboard dargestellt. Die folgenden Screenshots zeigen den realen Projektstand im laufenden Betrieb.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{pics/container/dashboard/homeassistnatDashboard.png}
+    \caption{Home-Assistant-Dashboard im Projektbetrieb}
+    \label{fig:ha-dashboard-overview}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/dashboard/homeassistantDoorClosed.png}
+        \caption{Türstatus geschlossen}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/dashboard/homeassistnatDoorOpen.png}
+        \caption{Türstatus offen}
+    \end{subfigure}
+    \caption{Türzustände im Home-Assistant-Dashboard}
+    \label{fig:ha-door-states}
+\end{figure}
+
+Damit ist die Kette von der Hardware bis zur Visualisierung nachvollziehbar: Der reale Türzustand aus Abbildung~\ref{fig:tuersensor-zustaende} wird über Zigbee und MQTT verarbeitet und anschließend als Dashboardzustand in Abbildung~\ref{fig:ha-door-states} angezeigt.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/dashboard/motionStateNone.png}
+        \caption{Keine Bewegung erkannt}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/dashboard/motionStateLarge.png}
+        \caption{Bewegung erkannt}
+    \end{subfigure}
+    \caption{Anwesenheitsdarstellung im Dashboard}
+    \label{fig:ha-motion-states}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/dashboard/temperaturAndHumidity.png}
+        \caption{Temperatur- und Luftfeuchtedaten}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/dashboard/plugs.png}
+        \caption{Schaltzustände der Aktoren}
+    \end{subfigure}
+    \caption{Live-Daten und Schaltinformationen in Home Assistant}
+    \label{fig:ha-telemetry-plugs}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/dashboard/snapshot_camera_hell.jpg}
+        \caption{Kamerabild bei Tageslicht}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{pics/container/dashboard/snapshot_camera_dunkel.jpg}
+        \caption{Kamerabild bei Dunkelheit}
+    \end{subfigure}
+    \caption{Kamerasnapshots im Dashboardkontext}
+    \label{fig:ha-camera-snapshots}
+\end{figure}
+
 \subsection{Kommunikation im Container}
 
 Die Kommunikation folgt einem zweistufigen Modell:
@@ -178,7 +323,7 @@ Für den Steuerpfad wird die Collection \texttt{actions} als Befehls-Queue verwe
 
 
 
-\section{Systemarchitektur [Leopold Mistelberger]}
+\section{Systemarchitektur}
 \setauthor{Leopold Mistelberger}
 
 \subsection{Kontextdiagramm}
@@ -1186,11 +1331,16 @@ Der automatisierte Build-Prozess bietet mehrere Vorteile:
 \end{itemize}
 
 
-\section{Server- und Infrastrukturtechnologien [Elias Mahr]}
+\section{Server- und Infrastrukturtechnologien}
 \setauthor{Elias Mahr}
 
+Dieser Abschnitt beschreibt die serverseitigen Bausteine, die fuer den sicheren und stabilen Betrieb von CESC noetig sind. Im Fokus stehen Authentifizierung, Zugriffsschutz, Routing und die technische Trennung der Dienste.
 
-\section{Keycloak [Elias Mahr]}
+Die Infrastruktur wurde so umgesetzt, dass kritische Komponenten nicht unkontrolliert direkt erreichbar sind. Stattdessen werden Anfragen ueber klar definierte Pfade geleitet und nur dort freigegeben, wo es fachlich notwendig ist. Dadurch sinkt die Angriffsflaeche und der Betrieb bleibt besser nachvollziehbar.
+
+Die nachfolgenden Kapitel zeigen die konkrete Umsetzung dieser Infrastrukturbausteine: zuerst Keycloak fuer Anmeldung und Rollen, danach Reverse-Proxy fuer die sichere Weiterleitung der Anfragen sowie weitere Backend-relevante Sicherheitsmechanismen.
+
+\section{Keycloak}
 \setauthor{Elias Mahr}
 
 \subsection{Einbindung ins Frontend}
@@ -1878,7 +2028,7 @@ Dieses Skript prüft für jeden Container, ob laut Kalenderregel (Arbeitszeit, W
 Daraufhin werden abhängig vom Ergebnis die entsprechenden Schaltbefehle ausgeführt(Heizung 30 min vor Start einschalten). Während der Arbeitszeit gibt es noch einen Job, der alle 30 min ein Skript ausführt, dass prüft, ob die Türe offen ist, und wenn ja wie lange. Bei zu langer Öffnung der Türe wird die Heizung/Kühlung auch deaktiviert um Strom zu Sparen. Beides Funktioniert über ein Skript am Server, das die jeweiligen Informationen aus der Datenbank liest und wenn nötig neue Daten in die Datenbank schreibt (zum Beispiel den Status des Heating-Plugs auf ''ON'' anstatt ''OFF'').
 Der action-handler erkennt die änderung in der Datenbank und schaltet daraufhin den Plug ein. Das Frontend erkennt ebenfalls durch den FirestoreListener die Änderung in der Datenbank und aktualisiert es in der UI.
 
-\section{Reverse-Proxy [Elias Mahr]}
+\section{Reverse-Proxy}
 \setauthor{Elias Mahr}
 Ein Reverse-Proxy steht zwischen dem Webserver und dem Internet. Im Grunde fungiert es wie ein Türsteher für den Server. Anfragen werden von außen entgegengenommen und zum richtigen Dienst weitergeleitet(Frontend, Backend, Keycloak,...). Dadurch werden die echten Adressen verschleiert.
 
@@ -1940,7 +2090,7 @@ Die Ports werden pfadbasiert weitergeleitet:
 \end{lstlisting}
 \end{itemize}
 
-\section{Backend [Timon Schmalzer]}
+\section{Backend}
 \setauthor{Timon Schmalzer}
 
 \subsection{Kalenderlogik und Betriebsentscheidung}
@@ -2514,7 +2664,7 @@ Häufige Fehler und deren Lösung:
 In der Produktion sollten Logs zentral gesammelt werden (z.B. über ELK-Stack oder ähnliche Systeme). Dadurch lassen sich Fehler über mehrere Anfragen zeitlich und sachlich korrelieren, was für die Fehlerbehebung immens hilfreich ist.
 
 
-\section{Datenbank [Timon Schmalzer]}
+\section{Datenbank}
 \setauthor{Timon Schmalzer}
 
 Dieses Kapitel behandelt die konkrete Datenhaltung des Systems auf Basis von Firebase Firestore.
