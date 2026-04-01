@@ -818,6 +818,8 @@ Die folgende Abbildung zeigt die grundlegende Struktur von Collections, Dokument
 
 Auf dieser Basis lässt sich Firestore gut einem relationalen Ansatz gegenüberstellen. Der folgende Kurzvergleich fokussiert auf die für CESC relevanten technischen Unterschiede.
 
+Im produktiven CESC-System wird dabei Firestore als operative Datenbank eingesetzt; der relationale Ansatz dient im Kapitel als technologische Vergleichsbasis.
+
 \subsubsection{Kurzvergleich: Relationale Datenbank vs. Firestore}
 \begin{table}[H]
     \centering
@@ -875,7 +877,7 @@ Insgesamt ist Firestore damit technologisch eine stimmige Wahl für CESC: einers
 
 \subsubsection{Firestore SDK und Datenzugriff im Backend}
 
-Für den serverseitigen Zugriff auf Firestore wird im Backend ein offizielles Firestore-SDK verwendet. Dadurch erfolgt die Datenkommunikation über eine standardisierte, von Google unterstützte Schnittstelle, anstatt über selbst definierte direkte HTTP-Aufrufe \cite{firestore_dotnet_sdk}.
+Für den serverseitigen Zugriff auf Firestore wird im Backend ein offizielles Firestore-SDK verwendet. Im CESC-Backend erfolgt dieser Zugriff in ASP.NET Core auf .NET 8 über das Paket \texttt{Google.Cloud.Firestore}. Dadurch erfolgt die Datenkommunikation über eine standardisierte, von Google unterstützte Schnittstelle, anstatt über selbst definierte direkte HTTP-Aufrufe \cite{firestore_dotnet_sdk}.
 
 Aus technologischer Sicht bringt dieser Ansatz mehrere Vorteile:
 
