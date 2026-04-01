@@ -2118,6 +2118,7 @@ Die folgende Implementierung zeigt den Kern der Entscheidungskette im \texttt{Ca
     caption=Fallback von individuellem auf Standardkalender,
     label=lst:backend:calendar:fallback,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 var container = await _containerRepository.GetContainersWithFullDataAsync();
 var c = container.FirstOrDefault(x => x.ContainerId == containerId);
@@ -2137,7 +2138,7 @@ else
     calendarType = c.State.Trim().ToLower() == "upper_austria" ? "standard_5days" : "standard_4days";
     rule = await _calendarService.GetRuleForLocationAsync(calendarType);
     if (rule == null)
-    return NotFound($"Keine Regel f\u00FCr Kalender-Typ '{calendarType}' gefunden");
+    return NotFound($"Keine Regel fuer Kalender-Typ '{calendarType}' gefunden");
 }
 \end{lstlisting}
 
@@ -2152,6 +2153,7 @@ Damit der Endpunkt stabil funktioniert, werden die benötigten Komponenten im Ba
     caption=Service-Registrierung im Backend,
     label=lst:backend:di:registration,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 builder.Services.AddScoped<IContainerRepository, ContainerRepository>();
 builder.Services.AddScoped<ContainerRepository>();
@@ -2186,6 +2188,7 @@ Die Implementierung ist bewusst als Lesezugriff ausgelegt. Schreiboperationen au
     caption=Container-Endpunkte im Backend,
     label=lst:backend:containers:endpoints,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 [HttpGet]
 public async Task<ActionResult<IEnumerable<Container>>> GetContainers()
@@ -2224,6 +2227,7 @@ Die Zuordnung erfolgt über \texttt{sensorType} und \texttt{sensorId}. Je nach T
     caption=Zuordnung von Sensordaten in ein gemeinsames DTO,
     label=lst:backend:sensors:mapping,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 if (sensorType == "th-inside" || sensorId.Contains("th_inside"))
 {
@@ -2266,6 +2270,7 @@ Vor der eigentlichen Datenabfrage werden die Parameter validiert, damit nur gül
     caption=Parameterprüfung im History-Endpunkt,
     label=lst:backend:sensors:validation,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 [HttpGet("history/plugs/{containerId}/{plugType}")]
 public async Task<ActionResult> GetPlugDeviceHistory(
@@ -2311,6 +2316,7 @@ Zu Beginn wird der ASP.NET-Core-Servicecontainer aufgebaut. Neben den Controller
     caption=Registrierung zentraler Backend-Services,
     label=lst:backend:program:services,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -2341,6 +2347,7 @@ Nach der Service-Registrierung wird die Middleware-Pipeline aufgebaut. Die Reihe
     caption=HTTP-Pipeline im Backend,
     label=lst:backend:program:pipeline,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 if (app.Environment.IsDevelopment())
 {
@@ -2389,6 +2396,7 @@ Zusätzlich wird die API über JWT-Bearer-Authentifizierung geschützt. Die Konf
     caption=JWT-Bearer-Authentifizierung mit Keycloak,
     label=lst:backend:program:jwt-config,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -2454,6 +2462,7 @@ Zusätzlich existiert ein Sammelendpunkt \texttt{POST /api/PlugControl/bulk-swit
     caption=Erzeugen einer einzelnen Plug-Aktion,
     label=lst:backend:plugcontrol:create-action,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 [HttpPost]
 public async Task<IActionResult> ControlPlug([FromBody] PlugControlRequest request)
@@ -2488,6 +2497,7 @@ Im Bulk-Endpunkt wird zusätzlich verhindert, dass doppelte Aktionen für densel
     caption=Validierung und Dublettenvermeidung beim Bulk-Switch,
     label=lst:backend:plugcontrol:bulk-validation,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 if (request.Status != "ON" && request.Status != "OFF")
 {
@@ -2573,6 +2583,7 @@ Die Fehlerbehandlung ist eng mit dem Logging verbunden. Für die Authentifizieru
     caption=JWT-Authentication Logging via JwtBearerEvents,
     label=lst:backend:error:jwt-logging,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 options.Events = new JwtBearerEvents
 {
@@ -2596,6 +2607,7 @@ Dies ermöglicht es, Authentifizierungsfehler direkt nachzuvollziehen. Außerdem
     caption=Initialisierungs-Logging für Firestore,
     label=lst:backend:error:firestore-logging,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 try
 {
@@ -2620,6 +2632,7 @@ In den Controllern werden ähnlich Validierungsfehler und kritische Operationen 
     caption=Fehlerbehandlung in Controllern,
     label=lst:backend:error:controller-logging,
     basicstyle=\ttfamily\small
+    ,breaklines=true,breakatwhitespace=false,columns=fullflexible
 ]
 if (request.Status != "ON" && request.Status != "OFF")
 {
@@ -2671,51 +2684,508 @@ Dieses Kapitel behandelt die konkrete Datenhaltung des Systems auf Basis von Fir
 
 \subsection{Datenmodell in Firestore}
 
-Die fachliche und technische Struktur der gespeicherten Daten wird hier vollständig dargestellt.
+Die Datenhaltung in CESC folgt einem dokumentenorientierten Firestore-Modell mit klarer Trennung zwischen Stammdaten, aktuellen Zustandsdaten, Zeitreihen und Steueraufträgen. Dadurch kann das System einerseits schnelle aktuelle Zustände für Dashboard und API bereitstellen und andererseits historische Entwicklungen für Auswertungen erhalten.
 
-\subsubsection{Collection-Struktur und Dokumentaufbau}
+Technisch wurde das Modell so aufgebaut, dass die fachliche Struktur direkt in den Collection-Namen sichtbar ist. Diese Zuordnung wird sowohl im Backend als auch in den Raspberry-Pi-Diensten verwendet und stellt damit eine einheitliche Grundlage für alle Datenzugriffe dar.
 
-Dieser Abschnitt beschreibt den Aufbau der Collections und die Inhalte einzelner Dokumente.
+\subsubsection{Collections und Dokumenttypen}
 
-\subsubsection{Container-, Sensor- und Kalenderdaten}
+Die Collection-Struktur ist im Projekt nicht nur konzeptionell definiert, sondern direkt in der Laufzeitkonfiguration und in den Repository-Klassen verankert. Ein zentraler Auszug aus \texttt{config.json} zeigt die tatsächlich verwendete Zuordnung:
 
-Hier werden die wichtigsten Datentypen und deren Felder im Projektkontext erläutert.
+\begin{lstlisting}[caption={Collection-Zuordnung in der Raspberry-Pi-Konfiguration},label={lst:db:collections:config},basicstyle=\ttfamily\small]
+"collections": {
+  "actions": "actions",
+  "containers": "containers",
+  "latestSensorData": "latestSensorData",
+  "appearance": "appearanceSensors",
+  "door": "doorSensors",
+  "plug-light": "plugLightSensors",
+  "plug-heating": "plugHeatingSensors",
+  "plug-cooling": "plugCoolingSensors",
+  "th-inside": "thInsideSensors",
+  "th-outside": "thOutsideSensors"
+}
+\end{lstlisting}
 
-\subsubsection{Beziehungen und IDs im Datenmodell}
+Im Backend ist dieselbe Struktur über die Repositories an konkrete Collections gebunden. Beispielhaft:
 
-Die Verknüpfung von Entitäten über IDs sowie die Zuordnung zwischen den Datensätzen wird hier erklärt.
+\begin{lstlisting}[language={[Sharp]C},caption={Collection-Bindung in Firestore-Repositories},label={lst:db:collections:repositories},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+public class ContainerRepository : FirebaseRepository<Container>
+{
+    public ContainerRepository(FirestoreDb firestore)
+        : base(firestore, "containers")
+    {
+    }
+}
 
-\subsection{Repository-Umsetzung für Firestore}
+public class CalendarRepository : FirebaseRepository<CalendarRule>
+{
+    public CalendarRepository(FirestoreDb firestore)
+        : base(firestore, "calender")
+    {
+    }
+}
+\end{lstlisting}
+
+Auf dieser Basis werden die Daten in mehrere klar getrennte Collection-Bereiche organisiert:
+
+\begin{itemize}
+    \item \textbf{Stammdaten}: \texttt{containers} für Container-Metadaten und Zuordnungen.
+    \item \textbf{Aktuelle Zustände}: \texttt{latestSensorData} mit genau einem aktuellen Dokument pro Sensor.
+    \item \textbf{Historien-Daten (Sensorik)}: \texttt{thInsideSensors}, \texttt{thOutsideSensors}, \texttt{doorSensors}, \texttt{appearanceSensors}.
+    \item \textbf{Historien-Daten (Aktorik/Plugs)}: \texttt{plugLightSensors}, \texttt{plugHeatingSensors}, \texttt{plugCoolingSensors}.
+    \item \textbf{Steuerdaten}: \texttt{actions} als Befehls-Queue für Aktorsteuerung.
+    \item \textbf{Kalenderdaten}: \texttt{calender} für Regel- und Ausnahmekonfigurationen.
+\end{itemize}
+
+Die Zuordnung ist damit sowohl in der Laufzeitkonfiguration als auch im Backend konsistent abgebildet. Jede Collection bildet einen klaren fachlichen Verantwortungsbereich ab. Dadurch bleiben Abfragen einfach nachvollziehbar, und neue Sensortypen können ohne Umstrukturierung des gesamten Datenmodells ergänzt werden.
+
+Für die visuelle Dokumentation kann die Struktur zusätzlich als Collection-Map dargestellt werden.
+
+\IfFileExists{pics/firestore-collection-map.png}{
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.72\textheight,keepaspectratio]{pics/firestore-collection-map.png}
+    \caption{Collection-Map des CESC-Firestore-Modells}
+    \label{fig:db:collection-map}
+\end{figure}
+}{
+\noindent\textit{Hinweis: Die Abbildung \texttt{pics/firestore-collection-map.png} ist noch nicht eingebunden.}
+}
+
+\subsubsection{Latest-Daten, Historie und Aktionsdaten}
+
+Das Datenmodell wird in der Implementierung über drei klar getrennte Sichten genutzt, die unterschiedliche Laufzeitaufgaben erfüllen:
+
+\begin{itemize}
+    \item \textbf{Latest-Sicht}: \texttt{latestSensorData} liefert den jeweils aktuellen Zustand pro Sensor für schnelle API-Abfragen.
+    \item \textbf{Historien-Sicht}: Sensortyp-spezifische Collections speichern zeitliche Verläufe für Diagramme und Rückblicke.
+    \item \textbf{Aktions-Sicht}: \texttt{actions} dient als Befehls-Queue für asynchrone Plug-Steuerung.
+\end{itemize}
+
+Die Latest-Sicht wird im Backend über \texttt{containerId} gefiltert. Der folgende Auszug zeigt die reale Query in \texttt{LatestSensorDataRepository}:
+
+\begin{lstlisting}[language={[Sharp]C},caption={Latest-Query im Backend nach containerId},label={lst:db:latest:query},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+private const string CollectionName = "latestSensorData";
+
+public async Task<List<LatestSensorData>> GetSensorDataByContainerId(int containerId)
+{
+    var query = _firestore.Collection(CollectionName)
+        .WhereEqualTo("containerId", containerId);
+
+    var snapshot = await query.GetSnapshotAsync();
+    var results = new List<LatestSensorData>();
+    // ... Mapping auf konkrete Sensortypen
+    return results;
+}
+\end{lstlisting}
+
+Für den Steuerpfad schreibt das Backend neue Schaltaufträge in \texttt{actions}. Diese Dokumente werden danach vom \texttt{actionHandler} verarbeitet:
+
+\begin{lstlisting}[language={[Sharp]C},caption={Erzeugung eines Aktionsdokuments in actions},label={lst:db:actions:add},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+var db = _plugActionRepository.GetFirestoreDb();
+var actionsCollection = db.Collection("actions");
+
+var newAction = new PlugActionDocument
+{
+    ContainerId = request.ContainerId,
+    PlugType = request.PlugType,
+    Status = request.Status,
+    Timestamp = DateTime.UtcNow,
+    Processed = false
+};
+
+await actionsCollection.AddAsync(newAction);
+\end{lstlisting}
+
+Typische Felder in diesen drei Sichten sind \texttt{containerId}, \texttt{sensorId}, \texttt{sensorType}, \texttt{status}, \texttt{lastUpdate} bzw. \texttt{timestamp} sowie sensortypspezifische Werte wie Temperatur, Luftfeuchte, Batterie und Leistung. Die Trennung verhindert, dass aktuelle Zustände, historische Zeitreihen und Steuerkommandos vermischt werden.
+
+\subsubsection{IDs, Referenzen und Benennungskonventionen}
+
+Die Datenzuordnung im Projekt basiert auf einem einheitlichen ID- und Prefix-Schema. Dadurch bleiben Sensoridentität, Collection-Zuordnung und Containerbezug über alle Teilsysteme hinweg konsistent.
+
+Die Prefixe sind in der Laufzeitkonfiguration zentral definiert. Ein Auszug zeigt das konkrete Benennungsmuster:
+
+\begin{lstlisting}[caption={Prefix-Konventionen in der Sensor-Konfiguration},label={lst:db:ids:prefixes},basicstyle=\ttfamily\small]
+"door": {
+    "prefix": "zb_door_"
+},
+"plug-heating": {
+    "prefix": "zb_plug_heating_"
+},
+"th-inside": {
+    "prefix": "zb_th_inside_"
+}
+\end{lstlisting}
+
+Damit ergeben sich konsistente Sensor-IDs wie \texttt{zb\_door\_1}, \texttt{zb\_th\_inside\_1} oder \texttt{zb\_plug\_heating\_1}. Die \texttt{containerId} ist über das Suffix direkt ableitbar und kann in allen relevanten Collections für Filter und Join-freie Zuordnung verwendet werden.
+
+Im Backend werden Dokumente je nach Anwendungsfall über Dokument-ID und Feldfilter referenziert:
+
+\begin{itemize}
+        \item \textbf{Dokument-ID-basiert}: direkter Zugriff auf ein Dokument über dessen ID.
+        \item \textbf{Feldbasiert}: Abfragen über \texttt{containerId} für aktuelle Zustände und Historien.
+\end{itemize}
+
+Ein konkretes Beispiel für dokument-ID-basierte Referenzierung ist die ID-Normalisierung im \texttt{ContainersController}. Numerische API-IDs werden auf das interne Format \texttt{container\_<id>} abgebildet:
+
+\begin{samepage}
+\begin{lstlisting}[language={[Sharp]C},caption={ID-Normalisierung im ContainersController},label={lst:db:ids:container-normalization},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+[HttpGet("{id}")]
+public async Task<ActionResult<Container>> GetContainer(string id)
+{
+        string formattedId = id;
+        if (int.TryParse(id, out int containerId))
+        {
+                formattedId = $"container_{containerId}";
+        }
+
+        var container = await _containerRepository.GetContainerWithFullDataAsync(formattedId);
+        if (container == null)
+        {
+                return NotFound();
+        }
+        return Ok(container);
+}
+\end{lstlisting}
+\end{samepage}
+
+Die Kombination aus Prefix-Konventionen, eindeutigen Dokument-IDs und \texttt{containerId}-basierten Feldabfragen reduziert Zuordnungsfehler und hält den Datenzugriff im gesamten CESC-Stack nachvollziehbar.
+
+\subsection{Datenzugriff im Backend (Firestore und Repository Pattern)}
 
 Dieses Unterkapitel dokumentiert den konkreten Datenzugriff im Backend über Repository-Klassen.
 
-\subsubsection{ContainerRepository und SensorRepository}
+\subsubsection{Firestore-Initialisierung und DI-Registrierung}
 
-Die Implementierung und Aufgaben dieser beiden zentralen Repositories werden hier ausgearbeitet.
+Die Initialisierung der Firestore-Anbindung erfolgt zentral in \texttt{Program.cs}. Der Ablauf ist in der Implementierung klar sequenziert:
 
-\subsubsection{CalendarRepository und Regelverwaltung}
+\begin{itemize}
+    \item Lesen des Credential-Pfads aus der Konfiguration
+    \item Extraktion der \texttt{project\_id} aus der JSON-Datei
+    \item Setzen der Umgebungsvariable \texttt{GOOGLE\_APPLICATION\_CREDENTIALS}
+    \item Erzeugen und Registrierung der \texttt{FirestoreDb} als \texttt{Singleton}
+\end{itemize}
 
-Die Verwaltung von Kalenderregeln und Ausnahmen wird in diesem Abschnitt beschrieben.
+Der folgende Auszug zeigt die konkrete Initialisierung inklusive Validierung des Credential-Files:
 
-\subsubsection{Lese- und Schreibzugriffe in der Praxis}
+\begin{lstlisting}[language={[Sharp]C},caption={Firestore-Initialisierung in Program.cs},label={lst:db:di:firestore-init},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+string credentialsPath = builder.Configuration["Firebase:CredentialsPath"] ?? "firebase-credentials.json";
 
-Hier werden typische Read- und Write-Abläufe anhand realer Backend-Operationen dargestellt.
+if (!System.IO.File.Exists(credentialsPath))
+{
+    throw new FileNotFoundException($"Firebase credentials file not found at {credentialsPath}");
+}
 
-\subsection{Datenflüsse und Konsistenz}
+var json = System.IO.File.ReadAllText(credentialsPath);
+using var doc = System.Text.Json.JsonDocument.Parse(json);
+var projectId = doc.RootElement.GetProperty("project_id").GetString();
+
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath);
+
+builder.Services.AddSingleton(provider =>
+{
+    var db = FirestoreDb.Create(projectId);
+    return db;
+});
+\end{lstlisting}
+
+Die Wahl von \texttt{Singleton} für \texttt{FirestoreDb} ist für den Laufzeitbetrieb wesentlich: Alle Repositories greifen auf dieselbe initialisierte Datenbankinstanz zu, wodurch pro Request keine erneute, teure Initialisierung erfolgt.
+
+Die vollständige DI-Registrierung der Repository-Klassen wurde bereits im Backend-Kapitel dargestellt (vgl. Listing~\ref{lst:backend:di:registration}). An dieser Stelle wird sie nicht erneut vollständig wiederholt, sondern nur aus Datenbank-Sicht eingeordnet:
+
+\begin{itemize}
+    \item \texttt{FirestoreDb} bleibt als gemeinsame Infrastruktur-Instanz \texttt{Singleton}.
+    \item Repository-Klassen bleiben \texttt{Scoped}, damit pro Request ein konsistenter Zugriffskontext besteht.
+    \item Die Trennung \textit{Infrastruktur in Program.cs} vs. \textit{Collection-Zugriff in Repositories} bleibt klar erhalten.
+\end{itemize}
+
+Damit wird im Datenbankkapitel bewusst der Fokus auf Datenzugriff und Query-Verhalten gelegt, ohne die bereits dokumentierte Backend-Bootstrap-Logik zu duplizieren.
+
+\subsubsection{Container-, Sensor- und CalendarRepository}
+
+Die drei Repository-Klassen bilden den grundlegenden Firestore-Zugriff für Stammdaten und Regelobjekte. Alle drei erben von \texttt{FirebaseRepository<T>} und binden jeweils eine konkrete Collection:
+
+\begin{itemize}
+    \item \textbf{ContainerRepository}: Zugriff auf \texttt{containers}
+    \item \textbf{SensorRepository}: Zugriff auf \texttt{sensors}
+    \item \textbf{CalendarRepository}: Zugriff auf \texttt{calender}
+\end{itemize}
+
+Die konkrete Binding-Implementierung ist direkt in den Konstruktoren sichtbar:
+
+\begin{lstlisting}[language={[Sharp]C},caption={Collection-Bindung der Basis-Repositories},label={lst:db:repos:bindings},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+public class ContainerRepository : FirebaseRepository<Container>, IContainerRepository
+{
+    public ContainerRepository(FirestoreDb firestore)
+        : base(firestore, "containers") { }
+
+    public async Task<Container?> GetContainerWithFullDataAsync(string id)
+        => await GetByIdAsync(id);
+
+    public async Task<IEnumerable<Container>> GetContainersWithFullDataAsync()
+        => await GetAllAsync();
+}
+
+public class SensorRepository : FirebaseRepository<EnvironmentalSensor>
+{
+    public SensorRepository(FirestoreDb firestore)
+        : base(firestore, "sensors") { }
+}
+
+public class CalendarRepository : FirebaseRepository<CalendarRule>
+{
+    public CalendarRepository(FirestoreDb firestore)
+        : base(firestore, "calender") { }
+}
+\end{lstlisting}
+
+Fachlich bedeutet das:
+
+\begin{itemize}
+    \item \texttt{ContainerRepository} kapselt den Zugriff auf Container-Stammdaten und stellt den im Controller genutzten Einstiegspunkt für Einzel- und Sammelabfragen bereit.
+    \item \texttt{SensorRepository} bildet den generischen Zugriff auf \texttt{EnvironmentalSensor}-Dokumente ab.
+    \item \texttt{CalendarRepository} verwaltet Kalenderregeln und Ausnahmen in der Firestore-Collection \texttt{calender}.
+\end{itemize}
+
+Die eigentliche CRUD-Logik wird nicht in jeder Klasse erneut implementiert, sondern in der gemeinsamen Basisklasse gebündelt. Dadurch bleibt der Datenzugriff konsistent über alle Repository-Typen hinweg:
+
+\begin{lstlisting}[language={[Sharp]C},caption={Gemeinsame CRUD-Logik in FirebaseRepository<T>},label={lst:db:repos:base-crud},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+public virtual async Task<IEnumerable<T>> GetAllAsync()
+{
+    CollectionReference collectionRef = _firestore.Collection(_collectionName);
+    QuerySnapshot querySnapshot = await collectionRef.GetSnapshotAsync();
+    // ... ConvertTo<T>() je Dokument
+}
+
+public virtual async Task<T?> GetByIdAsync(string id)
+{
+    DocumentReference docRef = _firestore.Collection(_collectionName).Document(id);
+    DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
+    // ... ConvertTo<T>() falls vorhanden
+}
+\end{lstlisting}
+
+Spezialisierte Laufzeitzugriffe für aktuelle Sensordaten, Historienabfragen und den Steuerpfad (\texttt{actions}) liegen bewusst in separaten Repositories. Diese werden im folgenden Unterkapitel behandelt.
+
+\subsubsection{LatestSensorDataRepository und PlugActionRepository}
+
+Die beiden spezialisierten Repositories decken Laufzeitpfade ab, die über generisches CRUD hinausgehen: Einerseits das typisierte Lesen der letzten Sensordaten je Container, andererseits das Schreiben von Steueraktionen in die Queue-Collection \texttt{actions}.
+
+Im \texttt{LatestSensorDataRepository} erfolgt der Einstieg über die Collection \texttt{latestSensorData} mit Feldfilter auf \texttt{containerId}. Danach wird jedes Dokument auf einen konkreten Sensortyp abgebildet. Die Implementierung nutzt dafür zuerst das Feld \texttt{sensorType} und verwendet die Dokument-ID als Fallback:
+
+\begin{lstlisting}[language={[Sharp]C},caption={Typisierte Latest-Query pro Container},label={lst:db:latest:typed-query},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+public async Task<List<LatestSensorData>> GetSensorDataByContainerId(int containerId)
+{
+    var query = _firestore.Collection("latestSensorData")
+        .WhereEqualTo("containerId", containerId);
+
+    var snapshot = await query.GetSnapshotAsync();
+    var results = new List<LatestSensorData>();
+
+    foreach (var document in snapshot.Documents)
+    {
+        var documentId = document.Id.ToLower();
+        var data = document.ToDictionary();
+        var sensorType = data.ContainsKey("sensorType")
+            ? data["sensorType"].ToString().ToLower()
+            : "";
+
+        if (sensorType == "appearance" || documentId.Contains("appearance"))
+            results.Add(document.ConvertTo<AppearanceSensor>());
+        else if (sensorType == "door" || documentId.Contains("door"))
+            results.Add(document.ConvertTo<DoorSensor>());
+        else if (sensorType == "th-inside" || documentId.Contains("th_inside"))
+            results.Add(document.ConvertTo<TemperatureHumiditySensor>());
+    }
+
+    return results;
+}
+\end{lstlisting}
+
+Neben dem Latest-Pfad enthält dieselbe Klasse auch historische Leseoperationen. Diese verwenden collectionspezifische Abfragen (z. B. \texttt{thInsideSensors}, \texttt{thOutsideSensors}, Plug-Collections) und filtern Zeitfenster abhängig vom Endpoint-Parameter \texttt{days}. Dadurch bleiben API-Schnittstellen einfach, während die Collection-spezifische Logik im Repository gekapselt ist.
+
+Das \texttt{PlugActionRepository} bindet die Collection \texttt{actions} und stellt den Firestore-Zugriff für den Steuerpfad bereit. Im aktuellen Stand erzeugt der Controller die Aktionsdokumente direkt über diese Firestore-Instanz. Ein Auftrag wird dabei mit Zeitstempel und \texttt{processed = false} als noch nicht verarbeitet abgelegt:
+
+\begin{lstlisting}[language={[Sharp]C},caption={Schreibpfad in die actions-Collection},label={lst:db:actions:write-path},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+var db = _plugActionRepository.GetFirestoreDb();
+var actionsCollection = db.Collection("actions");
+
+var newAction = new PlugActionDocument
+{
+    ContainerId = request.ContainerId,
+    PlugType = request.PlugType,
+    Status = request.Status,
+    Timestamp = DateTime.UtcNow,
+    Processed = false
+};
+
+await actionsCollection.AddAsync(newAction);
+\end{lstlisting}
+
+Für den Laufzeitbetrieb ergibt sich damit ein klarer Spezialzuschnitt:
+
+\begin{itemize}
+    \item \texttt{LatestSensorDataRepository}: leseorientierte, typisierte Aggregation der zuletzt bekannten Sensorzustände sowie historische Abfragen pro Sensorkategorie.
+    \item \texttt{PlugActionRepository} plus Controller-Pfad: schreiborientierte Übergabe von Steueraufträgen in \texttt{actions} als asynchron verarbeitbare Work-Items.
+\end{itemize}
+
+\subsubsection{Typische Lese- und Schreiboperationen}
+
+Im laufenden System zeigt sich der Datenzugriff als wiederkehrende Request-Repository-Firestore-Sequenz. Die folgenden Abläufe sind repräsentativ für den produktiven Betrieb.
+
+\textbf{Ablauf A: Latest-Lesezugriff pro Container}
+
+Der Endpoint \texttt{GET /api/sensors/container/\{containerId\}} ruft \texttt{GetSensorDataByContainerId(containerId)} auf. Das Repository filtert in \texttt{latestSensorData} nach \texttt{containerId}; der Controller mappt die typisierten Ergebnisse auf ein \texttt{ContainerSensorsDTO}. Bei leerem Ergebnis wird \texttt{404 Not Found} zurückgegeben.
+
+\begin{lstlisting}[language={[Sharp]C},caption={Latest-Read mit NotFound-Fallback},label={lst:db:ops:latest-read},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+[HttpGet("container/{containerId}")]
+public async Task<ActionResult<ContainerSensorsDTO>> GetLatestSensorDataByContainer(int containerId)
+{
+    var sensorData = await _sensorRepository.GetSensorDataByContainerId(containerId);
+
+    if (sensorData.Count == 0)
+    {
+        return NotFound($"No sensor data found for container with ID {containerId}");
+    }
+
+    // Mapping auf ContainerSensorsDTO
+    return Ok(result);
+}
+\end{lstlisting}
+
+\textbf{Ablauf B: Historische Leseoperation mit Parametervalidierung}
+
+Für Temperatur- und Feuchteverläufe wird \texttt{GET /api/sensors/history/temperature/\{containerId\}/\{sensorLocation\}} verwendet. Der Controller validiert \texttt{sensorLocation} (\texttt{inside} oder \texttt{outside}) und delegiert anschließend an \texttt{GetTemperatureHumidityHistory(containerId, days)}. Bei ungültigem Pfadparameter folgt \texttt{400 Bad Request}; bei fehlenden Daten \texttt{404 Not Found}; bei Laufzeitfehlern \texttt{500 Internal Server Error}.
+
+Analog werden auch Plug- und Door-Historien gelesen. Ein technischer Sonderfall ist der Door-Pfad: Wenn keine Einträge vorliegen, liefert die API bewusst \texttt{200 OK} mit leerer Liste statt \texttt{404}, damit Frontend-Abfragen ohne Fehlerzustand rendern können.
+
+\textbf{Ablauf C: Schreiboperation in den Steuerpfad (actions)}
+
+Der Endpoint \texttt{POST /api/plugcontrol} validiert zuerst \texttt{containerId}, \texttt{plugType} und \texttt{status}. Erst danach wird ein neues \texttt{PlugActionDocument} in \texttt{actions} geschrieben. Damit ist die API der synchron ausgeführte Produzent und der Action-Handler der asynchrone Konsument.
+
+\begin{lstlisting}[language={[Sharp]C},caption={Validierter Write-Path für Steueraktionen},label={lst:db:ops:action-write},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+if (request.ContainerId <= 0)
+    return BadRequest(new { success = false, message = "Ungueltige Container-ID" });
+
+if (request.Status != "ON" && request.Status != "OFF")
+    return BadRequest(new { success = false, message = "Status muss 'ON' oder 'OFF' sein" });
+
+var db = _plugActionRepository.GetFirestoreDb();
+var actionsCollection = db.Collection("actions");
+
+await actionsCollection.AddAsync(new PlugActionDocument
+{
+    ContainerId = request.ContainerId,
+    PlugType = request.PlugType,
+    Status = request.Status,
+    Timestamp = DateTime.UtcNow,
+    Processed = false
+});
+
+return Ok(new { success = true, message = "Aktion wurde erfolgreich erstellt" });
+\end{lstlisting}
+
+Damit ist das Rückgabeverhalten entlang der Datenzugriffe klar differenziert: \texttt{400} bei invaliden Requests, \texttt{404} bei fehlenden fachlichen Daten (wo vorgesehen), \texttt{200} bei erfolgreichen Lese-/Schreibpfaden und \texttt{500} bei unerwarteten Laufzeitfehlern.
+
+\subsection{Datenfluss und Konsistenzsicherung}
 
 Dieser Abschnitt zeigt, wie Daten durch das System laufen und konsistent gehalten werden.
 
-\subsubsection{Von Sensordaten zur persistierten Struktur}
+\subsubsection{Telemetriepfad: Vom Sensorevent zur Persistenz}
 
-Die Transformationsschritte von eingehenden Sensordaten bis zur Speicherung werden hier nachvollzogen.
+Der Telemetriepfad beginnt im \texttt{mqttListener} mit einem Wildcard-Subscribe auf \texttt{<topic>/\#}. Eingehende \texttt{/set}-Topics werden verworfen, damit reine Steuerkommandos nicht als Messwerte persistiert werden. Danach wird der Sensortyp über Prefix-Matching aus der Konfiguration ermittelt und die Payload geparst.
 
-\subsubsection{Fallback-Strategien bei fehlenden Daten}
+Die Persistenz erfolgt als Dual-Write:
 
-Hier werden die implementierten Fallback-Mechanismen für unvollständige oder fehlende Daten erklärt.
+\begin{itemize}
+    \item Historien-Write in die sensortypspezifische Collection (z. B. \texttt{thInsideSensors}, \texttt{doorSensors}, \texttt{plugHeatingSensors}),
+    \item Status-Write in \texttt{latestSensorData} unter der Dokument-ID \texttt{sensorId}.
+\end{itemize}
 
-\subsubsection{Konsistenz zwischen API und Datenbank}
+Damit die Schreiblast beherrschbar bleibt, wird vor dem Persistieren ein technischer Filter angewendet: Zeitintervall, Schwellwerte und zustandsbasierte Sonderregeln (z. B. Door-Statuswechsel) entscheiden, ob ein Ereignis gespeichert wird.
 
-Dieser Teil beschreibt, wie API-Rückgaben und persistierte Datenstrukturen aufeinander abgestimmt bleiben.
+\begin{lstlisting}[caption={Telemetriepfad im mqttListener},label={lst:db:flow:telemetry-path},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+client.on('message', async (topic, message) => {
+    if (topic.endsWith('/set')) return;
+
+    const sensorType = getSensorType(topic);
+    if (!sensorType) return;
+
+    const sensorId = topic.split('/')[1];
+    const data = JSON.parse(message.toString());
+
+    await saveToFirebase(sensorType, sensorId, data);
+});
+
+async function saveToFirebase(sensorType, sensorId, rawData) {
+    const collectionName = getCollectionName(sensorType);
+    const mappedData = mapByConfig(sensorType, sensorId, rawData);
+
+    if (shouldSaveData(sensorId, sensorType, mappedData)) {
+        await db.collection(collectionName).add(mappedData);
+        await db.collection('latestSensorData').doc(sensorId).set({
+            ...mappedData,
+            sensorType: sensorType,
+            collectionName: collectionName
+        });
+    }
+}
+\end{lstlisting}
+
+Wesentlich für die Konsistenz ist die stabile \texttt{sensorId} als Schlüssel in \texttt{latestSensorData}: Pro Sensor existiert genau ein aktueller Zustand, während die Historien-Collections unverändert als Zeitreihe wachsen.
+
+\subsubsection{Steuerpfad: Von \texttt{actions} zur Aktorausführung}
+
+Der Steuerpfad ist als asynchrones Queue-Muster umgesetzt. Die API erzeugt zunächst ein neues Dokument in \texttt{actions}. Der \texttt{actionHandler} beobachtet diese Collection per \texttt{onSnapshot} und verarbeitet nur neu hinzugefügte Einträge.
+
+Im Verarbeitungsschritt werden \texttt{containerId}, \texttt{plugType} und \texttt{status} erneut validiert, das Ziel-Topic berechnet und anschließend ein MQTT-Command publiziert. Das Topic folgt dem Schema \texttt{zigbee2mqtt/zb\_plug\_<plugType>\_<containerId>/set}.
+
+\begin{lstlisting}[caption={Asynchroner Steuerpfad im actionHandler},label={lst:db:flow:control-path},basicstyle=\ttfamily\small,breaklines=true,breakatwhitespace=false,columns=fullflexible]
+actionsCollection.onSnapshot((snapshot) => {
+    snapshot.docChanges().forEach(async (change) => {
+        if (change.type === 'added') {
+            await processAction(change.doc.data(), change.doc.id);
+        }
+    });
+});
+
+async function processAction(actionData, actionId) {
+    const { containerId, plugType, status } = actionData;
+    if (!containerId || !['light','heating','cooling'].includes(plugType)) {
+        await deleteAction(actionId);
+        return;
+    }
+
+    const mqttTopic = `zigbee2mqtt/zb_plug_${plugType}_${containerId}/set`;
+    const payload = { state: status };
+
+    client.publish(mqttTopic, JSON.stringify(payload), async (err) => {
+        if (!err) await deleteAction(actionId);
+    });
+}
+\end{lstlisting}
+
+Das Dokument wird im Erfolgsfall gelöscht und nicht auf \texttt{processed=true} umgestellt. Operativ wirkt \texttt{actions} damit als kurzlebige Arbeitsqueue: vorhandene Einträge sind noch offen, entfernte Einträge wurden verarbeitet.
+
+\subsubsection{Konsistenz, Fehlerfälle und Fallback-Verhalten}
+
+Die Implementierung kombiniert mehrere Schutzebenen, damit fehlerhafte Requests oder instabile Verbindungen nicht zu inkonsistenten Zuständen führen.
+
+\textbf{Validierung auf API- und Worker-Ebene.}
+Der API-Endpunkt \texttt{POST /api/plugcontrol} lehnt ungültige Eingaben mit \texttt{400} ab. Zusätzlich validiert der \texttt{actionHandler} dieselben Kernfelder nochmals vor dem Publish. Dadurch entsteht ein \textit{defense-in-depth}-Muster zwischen synchronem und asynchronem Teilpfad.
+
+\textbf{Fallback bei leeren Leseresultaten.}
+Nicht jede Leseoperation behandelt leere Ergebnismengen gleich: Der Latest-Endpoint liefert \texttt{404}, während der Door-History-Endpoint bewusst \texttt{200} mit leerer Liste zurückgeben kann. Diese unterschiedliche Semantik ist im Frontend bereits berücksichtigt und vermeidet dort unnötige Fehlerzustände bei legitimen Nulltreffern.
+
+\textbf{Fehlerverhalten im Steuerpfad.}
+Bei MQTT-Fehlern wird eine Action nicht gelöscht und bleibt in \texttt{actions} erhalten. Der Worker besitzt zugleich eine Reconnect-Logik mit erneutem Verbindungsversuch nach fünf Sekunden. Damit gehen Steueraufträge bei temporären Broker-Ausfällen nicht verloren; sie bleiben persistent in Firestore, bis eine spätere Verarbeitung möglich ist.
+
+\textbf{Konsistenz von Latest- und Historiendaten.}
+Der Telemetriepfad schreibt Historie und \texttt{latestSensorData} nur bei relevanten Änderungen. Dadurch reduzieren sich redundante Writes, während das aktuelle Sensorbild pro \texttt{sensorId} stabil bleibt. Für zeitkritische Statuswechsel (z. B. Door, Plug ON/OFF) existieren Sonderregeln, damit trotz Dateneinsparung keine fachlich relevanten Zustandswechsel unterdrückt werden.
+
+
+
 
 
 
