@@ -1330,16 +1330,6 @@ Der automatisierte Build-Prozess bietet mehrere Vorteile:
     \item Multi-Arch-Bereitstellung für unterschiedliche Zielplattformen
 \end{itemize}
 
-
-\section{Server- und Infrastrukturtechnologien}
-\setauthor{Elias Mahr}
-
-Dieser Abschnitt beschreibt die serverseitigen Bausteine, die fuer den sicheren und stabilen Betrieb von CESC noetig sind. Im Fokus stehen Authentifizierung, Zugriffsschutz, Routing und die technische Trennung der Dienste.
-
-Die Infrastruktur wurde so umgesetzt, dass kritische Komponenten nicht unkontrolliert direkt erreichbar sind. Stattdessen werden Anfragen ueber klar definierte Pfade geleitet und nur dort freigegeben, wo es fachlich notwendig ist. Dadurch sinkt die Angriffsflaeche und der Betrieb bleibt besser nachvollziehbar.
-
-Die nachfolgenden Kapitel zeigen die konkrete Umsetzung dieser Infrastrukturbausteine: zuerst Keycloak fuer Anmeldung und Rollen, danach Reverse-Proxy fuer die sichere Weiterleitung der Anfragen sowie weitere Backend-relevante Sicherheitsmechanismen.
-
 \section{Keycloak}
 \setauthor{Elias Mahr}
 
